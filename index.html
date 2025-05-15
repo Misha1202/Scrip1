@@ -1,56 +1,49 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Collaboration App</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Проверка истории посещений</title>
+    <style>
+        .visited { color: red; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div id="loginScreen">
-            <h1>Вход в систему</h1>
-            <div class="login-form">
-                <select id="userType">
-                    <option value="user">Исполнитель</option>
-                    <option value="admin">Администратор</option>
-                </select>
-                <div id="passwordField" class="hidden">
-                    <input type="password" id="password" placeholder="Пароль администратора">
-                </div>
-                <button id="loginButton">Войти</button>
-            </div>
-        </div>
+    <h1>Демонстрация проверки истории</h1>
+    
+    <p>Эта страница может определить, посещали ли вы конкретные сайты:</p>
+    
+    <ul>
+        <li><a href="https://yandex.ru" id="link1">Яндекс</a></li>
+        <li><a href="https://vk.com" id="link2">ВКонтакте</a></li>
+        <li><a href="https://mail.ru" id="link3">Mail.ru</a></li>
+    </ul>
 
-        <div id="adminPanel" class="panel hidden">
-            <h1>Панель администратора</h1>
-            <button class="logout-btn">Выйти</button>
+    <script>
+        // Проверка посещения конкретных URL
+        function checkHistory() {
+            const links = document.querySelectorAll('a');
             
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="upload">Загрузка файла</button>
-                <button class="tab-btn" data-tab="submissions">Отправленные данные</button>
-            </div>
-            
-            <div id="uploadTab" class="tab-content active">
-                <input type="file" id="fileInput" accept=".xlsx, .xls">
-                <button id="uploadBtn">Загрузить</button>
-                <div id="filePreview"></div>
-            </div>
-            
-            <div id="submissionsTab" class="tab-content">
-                <div id="submissionsList"></div>
-            </div>
-        </div>
+            links.forEach(link => {
+                // Создаем скрытый элемент для проверки
+                const testLink = document.createElement('a');
+                testLink.href = link.href;
+                testLink.style.display = 'none';
+                document.body.appendChild(testLink);
+                
+                // Проверяем стиль (в некоторых браузерах это работает)
+                const color = window.getComputedStyle(testLink).color;
+                
+                // Если ссылка посещалась, добавляем класс
+                if (color === 'rgb(255, 0, 0)') {
+                    link.classList.add('visited');
+                    console.log(`Посещал: ${link.href}`);
+                }
+                
+                document.body.removeChild(testLink);
+            });
+        }
 
-        <div id="userPanel" class="panel hidden">
-            <h1>Панель исполнителя</h1>
-            <button class="logout-btn">Выйти</button>
-            <div id="userFileInfo"></div>
-            <div id="userTable"></div>
-            <button id="submitBtn" class="hidden">Отправить данные</button>
-        </div>
-    </div>
-    <script src="script.js"></script>
+        // Запускаем после загрузки страницы
+        window.addEventListener('load', checkHistory);
+    </script>
 </body>
 </html>
