@@ -1,0 +1,85 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.hidden {
+    display: none;
+}
+
+.login-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.panel {
+    margin-top: 20px;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: #ddd;
+    border: none;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: #4CAF50;
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+button {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+.logout-btn {
+    background: #f44336;
+}
