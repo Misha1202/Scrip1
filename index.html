@@ -3,134 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Приложение для работы с Excel</title>
+    <title>Excel Collaboration App</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1, h2 {
-            color: #333;
-            text-align: center;
-        }
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .login-form input, .login-form select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .login-form button {
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .login-form button:hover {
-            background-color: #45a049;
-        }
-        .hidden {
-            display: none;
-        }
-        .admin-panel, .user-panel {
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .button {
-            padding: 8px 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .button:hover {
-            background-color: #45a049;
-        }
-        .button-secondary {
-            background-color: #f44336;
-        }
-        .button-secondary:hover {
-            background-color: #d32f2f;
-        }
-        .file-list {
-            margin-top: 20px;
-        }
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border: 1px solid #ddd;
-            margin-bottom: 5px;
-            background-color: #f9f9f9;
-        }
-        #excelTable {
-            overflow-x: auto;
-        }
-        .tab-buttons {
-            display: flex;
-            margin-bottom: 20px;
-        }
-        .tab-button {
-            padding: 10px 20px;
-            background-color: #ddd;
-            border: none;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-        .tab-button.active {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Окно входа -->
         <div id="loginScreen">
             <h1>Вход в систему</h1>
             <div class="login-form">
@@ -141,353 +19,38 @@
                 <div id="passwordField" class="hidden">
                     <input type="password" id="password" placeholder="Пароль администратора">
                 </div>
-                <button id="loginButton" onclick="login()">Войти</button>
+                <button id="loginButton">Войти</button>
             </div>
         </div>
 
-        <!-- Панель администратора -->
-        <div id="adminPanel" class="admin-panel hidden">
+        <div id="adminPanel" class="panel hidden">
             <h1>Панель администратора</h1>
-            <button class="button button-secondary" onclick="logout()">Выйти</button>
+            <button class="logout-btn">Выйти</button>
             
-            <div class="tab-buttons">
-                <button class="tab-button active" onclick="openTab('adminTab1')">Загрузка файла</button>
-                <button class="tab-button" onclick="openTab('adminTab2')">Отправленные данные</button>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="upload">Загрузка файла</button>
+                <button class="tab-btn" data-tab="submissions">Отправленные данные</button>
             </div>
             
-            <div id="adminTab1" class="tab-content active">
-                <h2>Загрузить Excel файл</h2>
+            <div id="uploadTab" class="tab-content active">
                 <input type="file" id="fileInput" accept=".xlsx, .xls">
-                <button class="button" onclick="loadFile()">Загрузить</button>
-                
-                <div id="excelPreview" class="hidden">
-                    <h2>Предпросмотр данных</h2>
-                    <div id="excelTable"></div>
-                    <button class="button" onclick="saveFile()">Сохранить файл для пользователей</button>
-                </div>
+                <button id="uploadBtn">Загрузить</button>
+                <div id="filePreview"></div>
             </div>
             
-            <div id="adminTab2" class="tab-content">
-                <h2>Отправленные данные пользователей</h2>
-                <div id="submittedFiles" class="file-list"></div>
+            <div id="submissionsTab" class="tab-content">
+                <div id="submissionsList"></div>
             </div>
         </div>
 
-        <!-- Панель исполнителя -->
-        <div id="userPanel" class="user-panel hidden">
+        <div id="userPanel" class="panel hidden">
             <h1>Панель исполнителя</h1>
-            <button class="button button-secondary" onclick="logout()">Выйти</button>
-            
-            <div id="userFileInfo">
-                <p>Файл не загружен. Ожидайте, когда администратор загрузит файл.</p>
-            </div>
-            
-            <div id="userExcelTable" class="hidden"></div>
-            
-            <div id="userControls" class="hidden">
-                <button class="button" onclick="submitData()">Отправить данные</button>
-            </div>
+            <button class="logout-btn">Выйти</button>
+            <div id="userFileInfo"></div>
+            <div id="userTable"></div>
+            <button id="submitBtn" class="hidden">Отправить данные</button>
         </div>
     </div>
-
-    <script>
-        // Глобальные переменные
-        let currentUser = null;
-        let excelData = null;
-        let excelFileName = '';
-        let submittedFiles = [];
-        
-        // Пароль администратора (в реальном приложении это должно храниться на сервере)
-        const ADMIN_PASSWORD = "admin123";
-        
-        // Инициализация при загрузке страницы
-        document.getElementById('userType').addEventListener('change', function() {
-            if (this.value === 'admin') {
-                document.getElementById('passwordField').classList.remove('hidden');
-            } else {
-                document.getElementById('passwordField').classList.add('hidden');
-            }
-        });
-        
-        // Функция входа в систему
-        function login() {
-            const userType = document.getElementById('userType').value;
-            const password = document.getElementById('password').value;
-            
-            if (userType === 'admin' && password !== ADMIN_PASSWORD) {
-                alert('Неверный пароль администратора');
-                return;
-            }
-            
-            currentUser = userType;
-            document.getElementById('loginScreen').classList.add('hidden');
-            
-            if (userType === 'admin') {
-                document.getElementById('adminPanel').classList.remove('hidden');
-                loadSubmittedFiles();
-            } else {
-                document.getElementById('userPanel').classList.remove('hidden');
-                checkForFile();
-            }
-        }
-        
-        // Функция выхода из системы
-        function logout() {
-            currentUser = null;
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('adminPanel').classList.add('hidden');
-            document.getElementById('userPanel').classList.add('hidden');
-            document.getElementById('password').value = '';
-        }
-        
-        // Функция переключения вкладок
-        function openTab(tabId) {
-            // Скрыть все вкладки
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Убрать активный класс у всех кнопок
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // Показать выбранную вкладку
-            document.getElementById(tabId).classList.add('active');
-            
-            // Добавить активный класс к нажатой кнопке
-            event.currentTarget.classList.add('active');
-        }
-        
-        // Функция загрузки файла (для администратора)
-        function loadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                alert('Пожалуйста, выберите файл');
-                return;
-            }
-            
-            excelFileName = file.name;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                
-                // Получаем первую страницу
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                
-                // Показываем превью
-                showExcelPreview(excelData);
-                document.getElementById('excelPreview').classList.remove('hidden');
-            };
-            reader.readAsArrayBuffer(file);
-        }
-        
-        // Функция отображения превью Excel
-        function showExcelPreview(data) {
-            const table = document.createElement('table');
-            
-            // Создаем заголовок таблицы
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            
-            if (data.length > 0) {
-                for (let i = 0; i < data[0].length; i++) {
-                    const th = document.createElement('th');
-                    th.textContent = data[0][i] || `Колонка ${i+1}`;
-                    headerRow.appendChild(th);
-                }
-            }
-            
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-            
-            // Создаем тело таблицы
-            const tbody = document.createElement('tbody');
-            
-            for (let i = 1; i < data.length; i++) {
-                const row = document.createElement('tr');
-                
-                for (let j = 0; j < data[i].length; j++) {
-                    const td = document.createElement('td');
-                    td.textContent = data[i][j] || '';
-                    row.appendChild(td);
-                }
-                
-                tbody.appendChild(row);
-            }
-            
-            table.appendChild(tbody);
-            document.getElementById('excelTable').innerHTML = '';
-            document.getElementById('excelTable').appendChild(table);
-        }
-        
-        // Функция сохранения файла (для администратора)
-        function saveFile() {
-            if (!excelData) {
-                alert('Нет данных для сохранения');
-                return;
-            }
-            
-            // Сохраняем файл в localStorage (в реальном приложении это должно быть на сервере)
-            const fileData = {
-                name: excelFileName,
-                data: excelData,
-                timestamp: new Date().toISOString()
-            };
-            
-            localStorage.setItem('currentExcelFile', JSON.stringify(fileData));
-            
-            alert('Файл сохранен и доступен для пользователей');
-        }
-        
-        // Функция проверки наличия файла (для пользователя)
-        function checkForFile() {
-            const fileData = localStorage.getItem('currentExcelFile');
-            
-            if (fileData) {
-                const parsedData = JSON.parse(fileData);
-                excelData = parsedData.data;
-                excelFileName = parsedData.name;
-                
-                document.getElementById('userFileInfo').innerHTML = `
-                    <p>Текущий файл: <strong>${excelFileName}</strong></p>
-                    <p>Загружен: ${new Date(parsedData.timestamp).toLocaleString()}</p>
-                `;
-                
-                showUserExcelTable(excelData);
-                document.getElementById('userControls').classList.remove('hidden');
-            }
-        }
-        
-        // Функция отображения таблицы для пользователя
-        function showUserExcelTable(data) {
-            const table = document.createElement('table');
-            
-            // Создаем заголовок таблицы
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            
-            if (data.length > 0) {
-                for (let i = 0; i < data[0].length; i++) {
-                    const th = document.createElement('th');
-                    th.textContent = data[0][i] || `Колонка ${i+1}`;
-                    headerRow.appendChild(th);
-                }
-            }
-            
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-            
-            // Создаем тело таблицы с возможностью редактирования
-            const tbody = document.createElement('tbody');
-            
-            for (let i = 1; i < data.length; i++) {
-                const row = document.createElement('tr');
-                
-                for (let j = 0; j < data[i].length; j++) {
-                    const td = document.createElement('td');
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.value = data[i][j] || '';
-                    input.dataset.row = i;
-                    input.dataset.col = j;
-                    td.appendChild(input);
-                    row.appendChild(td);
-                }
-                
-                tbody.appendChild(row);
-            }
-            
-            table.appendChild(tbody);
-            document.getElementById('userExcelTable').innerHTML = '';
-            document.getElementById('userExcelTable').appendChild(table);
-            document.getElementById('userExcelTable').classList.remove('hidden');
-        }
-        
-        // Функция отправки данных (для пользователя)
-        function submitData() {
-            if (!excelData) {
-                alert('Нет данных для отправки');
-                return;
-            }
-            
-            // Обновляем данные из полей ввода
-            const inputs = document.querySelectorAll('#userExcelTable input');
-            inputs.forEach(input => {
-                const row = parseInt(input.dataset.row);
-                const col = parseInt(input.dataset.col);
-                excelData[row][col] = input.value;
-            });
-            
-            // Создаем файл для отправки
-            const timestamp = new Date().toISOString();
-            const fileName = `modified_${timestamp}_${excelFileName}`;
-            
-            const fileData = {
-                name: fileName,
-                data: excelData,
-                originalFileName: excelFileName,
-                timestamp: timestamp,
-                user: 'Исполнитель' // В реальном приложении здесь должно быть имя пользователя
-            };
-            
-            // Сохраняем отправленные данные (в реальном приложении это должно быть на сервере)
-            const submittedFiles = JSON.parse(localStorage.getItem('submittedFiles') || '[]');
-            submittedFiles.push(fileData);
-            localStorage.setItem('submittedFiles', JSON.stringify(submittedFiles));
-            
-            alert('Данные успешно отправлены администратору');
-        }
-        
-        // Функция загрузки отправленных файлов (для администратора)
-        function loadSubmittedFiles() {
-            const submittedFiles = JSON.parse(localStorage.getItem('submittedFiles') || []);
-            const filesContainer = document.getElementById('submittedFiles');
-            filesContainer.innerHTML = '';
-            
-            if (submittedFiles.length === 0) {
-                filesContainer.innerHTML = '<p>Нет отправленных файлов</p>';
-                return;
-            }
-            
-            submittedFiles.forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div>
-                        <strong>${file.name}</strong><br>
-                        <small>Исходный файл: ${file.originalFileName}</small><br>
-                        <small>Отправлен: ${new Date(file.timestamp).toLocaleString()}</small>
-                    </div>
-                    <button class="button" onclick="downloadSubmittedFile(${index})">Скачать</button>
-                `;
-                filesContainer.appendChild(fileItem);
-            });
-        }
-        
-        // Функция скачивания отправленного файла (для администратора)
-        function downloadSubmittedFile(index) {
-            const submittedFiles = JSON.parse(localStorage.getItem('submittedFiles') || []);
-            const file = submittedFiles[index];
-            
-            if (!file) {
-                alert('Файл не найден');
-                return;
-            }
-            
-            // Создаем книгу Excel
-            const ws = XLSX.utils.aoa_to_sheet(file.data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            
-            // Генерируем файл и скачиваем
-            XLSX.writeFile(wb, file.name);
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
