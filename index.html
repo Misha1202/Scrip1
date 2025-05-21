@@ -3,806 +3,653 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warframe Builder - Оптимизатор билдов</title>
+    <title>Финансовый менеджер - Учет расходов</title>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #e74c3c;
-            --text-color: #ecf0f1;
-            --highlight-color: #3498db;
-        }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--primary-color);
-            color: var(--text-color);
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
         }
         
         header {
-            background-color: var(--secondary-color);
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            padding: 1rem;
-            gap: 1rem;
-        }
-        
-        .builder-section {
-            flex: 1;
-            min-width: 300px;
-            background-color: var(--secondary-color);
+            background-color: #4a6fa5;
+            color: white;
+            padding: 20px;
             border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .results-section {
-            flex: 2;
-            min-width: 300px;
-            background-color: var(--secondary-color);
-            border-radius: 8px;
-            padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         h1, h2, h3 {
-            color: var(--highlight-color);
+            margin-top: 0;
         }
         
-        select, input, button {
-            padding: 0.5rem;
-            margin: 0.5rem 0;
-            border-radius: 4px;
-            border: none;
-            background-color: #3d566e;
-            color: var(--text-color);
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
             width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
         }
         
         button {
-            background-color: var(--accent-color);
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: bold;
+            font-size: 16px;
             transition: background-color 0.3s;
         }
         
         button:hover {
+            background-color: #3a5a80;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .positive {
+            color: #2ecc71;
+        }
+        
+        .delete-btn {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
             background-color: #c0392b;
-        }
-        
-        .mod-slot {
-            display: flex;
-            align-items: center;
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            background-color: #3d566e;
-            border-radius: 4px;
-        }
-        
-        .mod-slot select {
-            flex: 1;
-            margin-right: 0.5rem;
-        }
-        
-        .mod-slot input {
-            width: 60px;
-        }
-        
-        .stats-display {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #3d566e;
-            border-radius: 4px;
-        }
-        
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.5rem 0;
-        }
-        
-        .stat-name {
-            font-weight: bold;
-        }
-        
-        .stat-value {
-            color: var(--highlight-color);
-        }
-        
-        .enemy-level-analysis {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #3d566e;
-            border-radius: 4px;
-        }
-        
-        .recommended-mods {
-            margin-top: 1rem;
-        }
-        
-        .mod-card {
-            display: inline-block;
-            margin: 0.5rem;
-            padding: 0.5rem;
-            background-color: #3d566e;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .mod-card:hover {
-            transform: scale(1.05);
-            background-color: var(--highlight-color);
-        }
-        
-        .tab-container {
-            margin-top: 1rem;
-        }
-        
-        .tab-buttons {
-            display: flex;
-            border-bottom: 2px solid var(--highlight-color);
-        }
-        
-        .tab-button {
-            padding: 0.5rem 1rem;
-            background-color: var(--secondary-color);
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .tab-button.active {
-            background-color: var(--highlight-color);
-        }
-        
-        .tab-content {
-            display: none;
-            padding: 1rem 0;
-        }
-        
-        .tab-content.active {
-            display: block;
         }
         
         @media (max-width: 768px) {
             .container {
-                flex-direction: column;
+                grid-template-columns: 1fr;
+            }
+            
+            .summary {
+                grid-template-columns: 1fr 1fr;
             }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Warframe Builder</h1>
-        <p>Оптимизатор билдов для оружия, компаньонов и варфреймов</p>
+        <h1>Персональный финансовый менеджер</h1>
+        <p>Контролируйте свои расходы и оптимизируйте бюджет</p>
     </header>
     
+    <div class="summary">
+        <div class="summary-item">
+            <h3>Общий баланс</h3>
+            <div class="summary-value" id="total-balance">0 ₽</div>
+            <p>За все время</p>
+        </div>
+        <div class="summary-item">
+            <h3>Доходы</h3>
+            <div class="summary-value positive" id="total-income">0 ₽</div>
+            <p>За текущий месяц</p>
+        </div>
+        <div class="summary-item">
+            <h3>Расходы</h3>
+            <div class="summary-value negative" id="total-expense">0 ₽</div>
+            <p>За текущий месяц</p>
+        </div>
+        <div class="summary-item">
+            <h3>Остаток</h3>
+            <div class="summary-value" id="month-balance">0 ₽</div>
+            <p>За текущий месяц</p>
+        </div>
+    </div>
+    
     <div class="container">
-        <div class="builder-section">
-            <h2>Конструктор билда</h2>
+        <div>
+            <div class="card">
+                <h2>Добавить транзакцию</h2>
+                <form id="transaction-form">
+                    <div class="form-group">
+                        <label for="type">Тип операции</label>
+                        <select id="type" required>
+                            <option value="">Выберите тип</option>
+                            <option value="income">Доход</option>
+                            <option value="expense">Расход</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">Категория</label>
+                        <select id="category" required>
+                            <option value="">Выберите категорию</option>
+                            <!-- Категории будут заполнены JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="amount">Сумма</label>
+                        <input type="number" id="amount" min="0" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">Дата</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Описание</label>
+                        <input type="text" id="description" placeholder="Необязательное поле">
+                    </div>
+                    
+                    <button type="submit">Добавить транзакцию</button>
+                </form>
+            </div>
             
-            <div class="tab-container">
-                <div class="tab-buttons">
-                    <button class="tab-button active" onclick="openTab('weapons')">Оружие</button>
-                    <button class="tab-button" onclick="openTab('warframes')">Варфреймы</button>
-                    <button class="tab-button" onclick="openTab('companions')">Компаньоны</button>
-                </div>
-                
-                <div id="weapons" class="tab-content active">
-                    <h3>Выберите оружие</h3>
-                    <select id="weapon-type">
-                        <option value="">-- Тип оружия --</option>
-                        <option value="rifle">Винтовка</option>
-                        <option value="shotgun">Дробовик</option>
-                        <option value="pistol">Пистолет</option>
-                        <option value="melee">Ближний бой</option>
-                        <option value="archgun">Арчган</option>
-                    </select>
-                    
-                    <select id="weapon-select">
-                        <option value="">-- Выберите оружие --</option>
-                        <!-- Опции будут заполнены JavaScript -->
-                    </select>
-                    
-                    <h3>Моды</h3>
-                    <div id="mod-slots">
-                        <!-- Слоты для модов будут созданы JavaScript -->
-                    </div>
-                    
-                    <button onclick="addModSlot()">Добавить слот для мода</button>
-                    <button onclick="optimizeBuild()">Оптимизировать билд</button>
-                </div>
-                
-                <div id="warframes" class="tab-content">
-                    <h3>Выберите варфрейм</h3>
-                    <select id="warframe-select">
-                        <option value="">-- Выберите варфрейм --</option>
-                        <!-- Опции будут заполнены JavaScript -->
-                    </select>
-                    
-                    <h3>Моды</h3>
-                    <div id="warframe-mod-slots">
-                        <!-- Слоты для модов будут созданы JavaScript -->
-                    </div>
-                    
-                    <button onclick="addWarframeModSlot()">Добавить слот для мода</button>
-                    <button onclick="optimizeWarframeBuild()">Оптимизировать билд</button>
-                </div>
-                
-                <div id="companions" class="tab-content">
-                    <h3>Выберите компаньона</h3>
-                    <select id="companion-type">
-                        <option value="">-- Тип компаньона --</option>
-                        <option value="sentinel">Страж</option>
-                        <option value="pet">Питомец</option>
-                        <option value="moa">MOA</option>
-                    </select>
-                    
-                    <select id="companion-select">
-                        <option value="">-- Выберите компаньона --</option>
-                        <!-- Опции будут заполнены JavaScript -->
-                    </select>
-                    
-                    <h3>Моды</h3>
-                    <div id="companion-mod-slots">
-                        <!-- Слоты для модов будут созданы JavaScript -->
-                    </div>
-                    
-                    <button onclick="addCompanionModSlot()">Добавить слот для мода</button>
-                    <button onclick="optimizeCompanionBuild()">Оптимизировать билд</button>
+            <div class="card">
+                <h2>Статистика по категориям</h2>
+                <div class="chart-container">
+                    <canvas id="category-chart"></canvas>
                 </div>
             </div>
         </div>
         
-        <div class="results-section">
-            <h2>Результаты</h2>
-            
-            <div class="stats-display">
-                <h3>Характеристики</h3>
-                <div id="stats-container">
-                    <!-- Статистика будет заполнена JavaScript -->
-                    <p>Выберите оружие/варфрейм/компаньона и добавьте моды для отображения статистики.</p>
+        <div>
+            <div class="card">
+                <h2>История транзакций</h2>
+                <div class="form-group">
+                    <label for="filter-month">Фильтр по месяцу</label>
+                    <input type="month" id="filter-month">
                 </div>
+                
+                <table id="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Категория</th>
+                            <th>Описание</th>
+                            <th>Сумма</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Транзакции будут добавлены через JavaScript -->
+                    </tbody>
+                </table>
             </div>
             
-            <div class="enemy-level-analysis">
-                <h3>Анализ эффективности</h3>
-                <div id="enemy-analysis">
-                    <!-- Анализ будет заполнен JavaScript -->
-                    <p>После создания билда здесь будет показано, против каких уровней мобов он эффективен.</p>
-                </div>
-            </div>
-            
-            <div class="recommended-mods">
-                <h3>Рекомендуемые моды</h3>
-                <div id="recommended-mods-container">
-                    <!-- Рекомендуемые моды будут заполнены JavaScript -->
-                    <p>После выбора оружия/варфрейма/компаньона здесь появятся рекомендуемые моды.</p>
-                </div>
+            <div class="card">
+                <h2>Бюджет на категории</h2>
+                <table id="budget-table">
+                    <thead>
+                        <tr>
+                            <th>Категория</th>
+                            <th>Лимит</th>
+                            <th>Потрачено</th>
+                            <th>Остаток</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Бюджет будет добавлен через JavaScript -->
+                    </tbody>
+                </table>
+                <button id="add-budget-btn" style="margin-top: 15px;">Добавить бюджет</button>
             </div>
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // База данных оружия (упрощенная)
-        const weaponsDatabase = {
-            rifle: ["Soma Prime", "Fulmin", "Acceltra", "Trumna", "Tenora Prime"],
-            shotgun: ["Arca Plasmor", "Tigris Prime", "Corinth Prime", "Kuva Kohm", "Cedo"],
-            pistol: ["Kuva Nukor", "Pyrana Prime", "Catchmoon", "Tenet Cycron", "Athodai"],
-            melee: ["Gram Prime", "Redeemer Prime", "Kronen Prime", "Glaive Prime", "Nikana Prime"],
-            archgun: ["Mausolon", "Imperator Vandal", "Kuva Grattler", "Fluctus", "Corvas"]
-        };
-        
-        // База данных варфреймов
-        const warframesDatabase = [
-            "Excalibur", "Rhino", "Volt", "Saryn", "Mesa", 
-            "Nova", "Trinity", "Nekros", "Wukong", "Wisp"
-        ];
-        
-        // База данных компаньонов
-        const companionsDatabase = {
-            sentinel: ["Carrier", "Helios", "Wyrm", "Shade", "Djinn"],
-            pet: ["Kavat (Smeeta)", "Kavat (Adarza)", "Kubrow (Huras)", "Kubrow (Sahasa)", "Vulpaphyla"],
-            moa: ["Lambeo MOA", "Para MOA", "Oloro MOA"]
-        };
-        
-        // База данных модов (упрощенная)
-        const modsDatabase = {
-            rifle: [
-                {name: "Serration", effect: "Урон +165%", drain: 14},
-                {name: "Split Chamber", effect: "Мультивыстрел +90%", drain: 15},
-                {name: "Vital Sense", effect: "Крит. урон +120%", drain: 9},
-                {name: "Point Strike", effect: "Крит. шанс +150%", drain: 9},
-                {name: "Hellfire", effect: "Огонь +90%", drain: 11},
-                {name: "Stormbringer", effect: "Электричество +90%", drain: 11}
+        // Категории доходов и расходов
+        const categories = {
+            income: [
+                { id: 'salary', name: 'Зарплата' },
+                { id: 'bonus', name: 'Премия' },
+                { id: 'freelance', name: 'Фриланс' },
+                { id: 'investments', name: 'Инвестиции' },
+                { id: 'other_income', name: 'Другие доходы' }
             ],
-            shotgun: [
-                {name: "Point Blank", effect: "Урон +165%", drain: 14},
-                {name: "Hell's Chamber", effect: "Мультивыстрел +120%", drain: 15},
-                {name: "Blaze", effect: "Урон +60%, Огонь +60%", drain: 11},
-                {name: "Contagious Spread", effect: "Токсины +90%", drain: 11},
-                {name: "Charged Shell", effect: "Электричество +90%", drain: 11}
-            ],
-            pistol: [
-                {name: "Hornet Strike", effect: "Урон +220%", drain: 14},
-                {name: "Barrel Diffusion", effect: "Мультивыстрел +120%", drain: 11},
-                {name: "Lethal Torrent", effect: "Мультивыстрел +60%, Скорострельность +60%", drain: 11},
-                {name: "Pistol Gambit", effect: "Крит. шанс +150%", drain: 9},
-                {name: "Target Cracker", effect: "Крит. урон +120%", drain: 9}
-            ],
-            melee: [
-                {name: "Pressure Point", effect: "Урон +120%", drain: 9},
-                {name: "Blood Rush", effect: "Крит. шанс увеличивается с комбо", drain: 12},
-                {name: "Berserker", effect: "Скорость атаки +30% за крит", drain: 11},
-                {name: "Organ Shatter", effect: "Крит. урон +90%", drain: 9},
-                {name: "Condition Overload", effect: "Урон +120% за каждый статус", drain: 14}
-            ],
-            warframe: [
-                {name: "Intensify", effect: "Сила +30%", drain: 9},
-                {name: "Stretch", effect: "Дальность +45%", drain: 9},
-                {name: "Streamline", effect: "Эффективность +25%", drain: 9},
-                {name: "Continuity", effect: "Длительность +30%", drain: 9},
-                {name: "Vitality", effect: "Здоровье +440%", drain: 12},
-                {name: "Steel Fiber", effect: "Броня +110%", drain: 12}
-            ],
-            companion: [
-                {name: "Animal Instinct", effect: "Радар +30м, Обнаружение трупов +15м", drain: 6},
-                {name: "Vacuum", effect: "Притягивание лута 11.5м", drain: 6},
-                {name: "Fetch", effect: "Притягивание лута 11.5м", drain: 6},
-                {name: "Medi-Pet Kit", effect: "Здоровье +100%, Скорость восстановления +6", drain: 9},
-                {name: "Link Health", effect: "Здоровье +110% от варфрейма", drain: 10}
+            expense: [
+                { id: 'food', name: 'Продукты' },
+                { id: 'transport', name: 'Транспорт' },
+                { id: 'utilities', name: 'Коммунальные услуги' },
+                { id: 'entertainment', name: 'Развлечения' },
+                { id: 'health', name: 'Здоровье' },
+                { id: 'education', name: 'Образование' },
+                { id: 'clothing', name: 'Одежда' },
+                { id: 'other_expense', name: 'Другие расходы' }
             ]
         };
         
-        // Инициализация страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            // Заполняем выпадающие списки
-            populateWeaponType();
-            populateWarframeSelect();
-            populateCompanionType();
-            
-            // Добавляем начальные слоты для модов
-            addModSlot();
-            addWarframeModSlot();
-            addCompanionModSlot();
+        // Локальное хранилище для транзакций
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        
+        // Локальное хранилище для бюджета
+        let budgets = JSON.parse(localStorage.getItem('budgets')) || [];
+        
+        // Инициализация Chart.js
+        let categoryChart;
+        
+        // DOM элементы
+        const transactionForm = document.getElementById('transaction-form');
+        const typeSelect = document.getElementById('type');
+        const categorySelect = document.getElementById('category');
+        const amountInput = document.getElementById('amount');
+        const dateInput = document.getElementById('date');
+        const descriptionInput = document.getElementById('description');
+        const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
+        const budgetTable = document.getElementById('budget-table').querySelector('tbody');
+        const totalBalanceElement = document.getElementById('total-balance');
+        const totalIncomeElement = document.getElementById('total-income');
+        const totalExpenseElement = document.getElementById('total-expense');
+        const monthBalanceElement = document.getElementById('month-balance');
+        const filterMonthInput = document.getElementById('filter-month');
+        const addBudgetBtn = document.getElementById('add-budget-btn');
+        
+        // Установка текущей даты по умолчанию
+        dateInput.valueAsDate = new Date();
+        
+        // Обработчик изменения типа операции
+        typeSelect.addEventListener('change', function() {
+            updateCategories();
         });
         
-        // Функции для работы с вкладками
-        function openTab(tabName) {
-            const tabContents = document.getElementsByClassName('tab-content');
-            for (let i = 0; i < tabContents.length; i++) {
-                tabContents[i].classList.remove('active');
-            }
+        // Обработчик отправки формы транзакции
+        transactionForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            const tabButtons = document.getElementsByClassName('tab-button');
-            for (let i = 0; i < tabButtons.length; i++) {
-                tabButtons[i].classList.remove('active');
-            }
-            
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-        
-        // Функции для работы с оружием
-        function populateWeaponType() {
-            const weaponTypeSelect = document.getElementById('weapon-type');
-            weaponTypeSelect.addEventListener('change', function() {
-                const weaponSelect = document.getElementById('weapon-select');
-                weaponSelect.innerHTML = '<option value="">-- Выберите оружие --</option>';
-                
-                if (this.value) {
-                    weaponsDatabase[this.value].forEach(weapon => {
-                        const option = document.createElement('option');
-                        option.value = weapon;
-                        option.textContent = weapon;
-                        weaponSelect.appendChild(option);
-                    });
-                }
-                
-                // Обновляем рекомендуемые моды
-                updateRecommendedMods(this.value, 'weapon');
-            });
-        }
-        
-        // Функции для работы с варфреймами
-        function populateWarframeSelect() {
-            const warframeSelect = document.getElementById('warframe-select');
-            warframesDatabase.forEach(warframe => {
-                const option = document.createElement('option');
-                option.value = warframe;
-                option.textContent = warframe;
-                warframeSelect.appendChild(option);
-            });
-            
-            warframeSelect.addEventListener('change', function() {
-                if (this.value) {
-                    updateRecommendedMods(this.value, 'warframe');
-                }
-            });
-        }
-        
-        // Функции для работы с компаньонами
-        function populateCompanionType() {
-            const companionTypeSelect = document.getElementById('companion-type');
-            companionTypeSelect.addEventListener('change', function() {
-                const companionSelect = document.getElementById('companion-select');
-                companionSelect.innerHTML = '<option value="">-- Выберите компаньона --</option>';
-                
-                if (this.value) {
-                    companionsDatabase[this.value].forEach(companion => {
-                        const option = document.createElement('option');
-                        option.value = companion;
-                        option.textContent = companion;
-                        companionSelect.appendChild(option);
-                    });
-                }
-                
-                // Обновляем рекомендуемые моды
-                updateRecommendedMods(this.value, 'companion');
-            });
-        }
-        
-        // Функции для работы с модами
-        function addModSlot() {
-            const weaponType = document.getElementById('weapon-type').value;
-            if (!weaponType) {
-                alert('Сначала выберите тип оружия');
-                return;
-            }
-            
-            const modSlots = document.getElementById('mod-slots');
-            const modSlot = document.createElement('div');
-            modSlot.className = 'mod-slot';
-            
-            const modSelect = document.createElement('select');
-            modSelect.innerHTML = '<option value="">-- Выберите мод --</option>';
-            
-            modsDatabase[weaponType].forEach(mod => {
-                const option = document.createElement('option');
-                option.value = mod.name;
-                option.textContent = `${mod.name} (${mod.effect})`;
-                modSelect.appendChild(option);
-            });
-            
-            const rankInput = document.createElement('input');
-            rankInput.type = 'number';
-            rankInput.min = '0';
-            rankInput.max = '10';
-            rankInput.value = '0';
-            rankInput.placeholder = 'Ранг';
-            
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'X';
-            removeButton.onclick = function() {
-                modSlots.removeChild(modSlot);
-                calculateStats();
+            const transaction = {
+                id: Date.now(),
+                type: typeSelect.value,
+                category: categorySelect.value,
+                amount: parseFloat(amountInput.value),
+                date: dateInput.value,
+                description: descriptionInput.value
             };
             
-            modSlot.appendChild(modSelect);
-            modSlot.appendChild(rankInput);
-            modSlot.appendChild(removeButton);
+            transactions.push(transaction);
+            saveTransactions();
+            updateUI();
             
-            modSelect.addEventListener('change', calculateStats);
-            rankInput.addEventListener('change', calculateStats);
-            
-            modSlots.appendChild(modSlot);
-        }
+            // Сброс формы
+            transactionForm.reset();
+            dateInput.valueAsDate = new Date();
+        });
         
-        function addWarframeModSlot() {
-            const modSlots = document.getElementById('warframe-mod-slots');
-            const modSlot = document.createElement('div');
-            modSlot.className = 'mod-slot';
+        // Обработчик фильтра по месяцу
+        filterMonthInput.addEventListener('change', function() {
+            updateTransactionsTable();
+            updateSummary();
+        });
+        
+        // Обработчик кнопки добавления бюджета
+        addBudgetBtn.addEventListener('click', function() {
+            const category = prompt('Введите категорию расходов:');
+            if (!category) return;
             
-            const modSelect = document.createElement('select');
-            modSelect.innerHTML = '<option value="">-- Выберите мод --</option>';
+            const limit = parseFloat(prompt('Введите лимит для категории:'));
+            if (isNaN(limit) || limit <= 0) {
+                alert('Пожалуйста, введите корректную сумму');
+                return;
+            }
             
-            modsDatabase.warframe.forEach(mod => {
+            const existingBudgetIndex = budgets.findIndex(b => b.category === category);
+            
+            if (existingBudgetIndex !== -1) {
+                budgets[existingBudgetIndex].limit = limit;
+            } else {
+                budgets.push({
+                    category,
+                    limit
+                });
+            }
+            
+            saveBudgets();
+            updateBudgetTable();
+        });
+        
+        // Обновление списка категорий в зависимости от выбранного типа
+        function updateCategories() {
+            categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
+            
+            const selectedType = typeSelect.value;
+            if (!selectedType) return;
+            
+            const typeCategories = categories[selectedType];
+            typeCategories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = mod.name;
-                option.textContent = `${mod.name} (${mod.effect})`;
-                modSelect.appendChild(option);
+                option.value = category.id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
             });
-            
-            const rankInput = document.createElement('input');
-            rankInput.type = 'number';
-            rankInput.min = '0';
-            rankInput.max = '10';
-            rankInput.value = '0';
-            rankInput.placeholder = 'Ранг';
-            
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'X';
-            removeButton.onclick = function() {
-                modSlots.removeChild(modSlot);
-                calculateStats();
-            };
-            
-            modSlot.appendChild(modSelect);
-            modSlot.appendChild(rankInput);
-            modSlot.appendChild(removeButton);
-            
-            modSelect.addEventListener('change', calculateStats);
-            rankInput.addEventListener('change', calculateStats);
-            
-            modSlots.appendChild(modSlot);
         }
         
-        function addCompanionModSlot() {
-            const modSlots = document.getElementById('companion-mod-slots');
-            const modSlot = document.createElement('div');
-            modSlot.className = 'mod-slot';
-            
-            const modSelect = document.createElement('select');
-            modSelect.innerHTML = '<option value="">-- Выберите мод --</option>';
-            
-            modsDatabase.companion.forEach(mod => {
-                const option = document.createElement('option');
-                option.value = mod.name;
-                option.textContent = `${mod.name} (${mod.effect})`;
-                modSelect.appendChild(option);
-            });
-            
-            const rankInput = document.createElement('input');
-            rankInput.type = 'number';
-            rankInput.min = '0';
-            rankInput.max = '10';
-            rankInput.value = '0';
-            rankInput.placeholder = 'Ранг';
-            
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'X';
-            removeButton.onclick = function() {
-                modSlots.removeChild(modSlot);
-                calculateStats();
-            };
-            
-            modSlot.appendChild(modSelect);
-            modSlot.appendChild(rankInput);
-            modSlot.appendChild(removeButton);
-            
-            modSelect.addEventListener('change', calculateStats);
-            rankInput.addEventListener('change', calculateStats);
-            
-            modSlots.appendChild(modSlot);
+        // Сохранение транзакций в localStorage
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
         }
         
-        // Расчет статистики
-        function calculateStats() {
-            const statsContainer = document.getElementById('stats-container');
-            statsContainer.innerHTML = '<p>Выберите оружие/варфрейм/компаньона и добавьте моды для отображения статистики.</p>';
+        // Сохранение бюджета в localStorage
+        function saveBudgets() {
+            localStorage.setItem('budgets', JSON.stringify(budgets));
+        }
+        
+        // Обновление таблицы транзакций
+        function updateTransactionsTable() {
+            transactionsTable.innerHTML = '';
             
-            // Здесь должна быть логика расчета характеристик на основе выбранных модов
-            // Это упрощенная версия для демонстрации
+            const selectedMonth = filterMonthInput.value;
+            let filteredTransactions = [...transactions];
             
-            const weaponSelect = document.getElementById('weapon-select');
-            const warframeSelect = document.getElementById('warframe-select');
-            const companionSelect = document.getElementById('companion-select');
+            if (selectedMonth) {
+                filteredTransactions = filteredTransactions.filter(transaction => {
+                    return transaction.date.startsWith(selectedMonth);
+                });
+            }
             
-            if (weaponSelect.value || warframeSelect.value || companionSelect.value) {
-                let statsHTML = '';
+            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            filteredTransactions.forEach(transaction => {
+                const row = document.createElement('tr');
                 
-                if (weaponSelect.value) {
-                    statsHTML += `
-                        <div class="stat-row">
-                            <span class="stat-name">Урон:</span>
-                            <span class="stat-value">1000</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Крит. шанс:</span>
-                            <span class="stat-value">25%</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Крит. урон:</span>
-                            <span class="stat-value">2.5x</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Скорострельность:</span>
-                            <span class="stat-value">10.0</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Статус:</span>
-                            <span class="stat-value">30%</span>
-                        </div>
-                    `;
-                } else if (warframeSelect.value) {
-                    statsHTML += `
-                        <div class="stat-row">
-                            <span class="stat-name">Здоровье:</span>
-                            <span class="stat-value">1000</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Щиты:</span>
-                            <span class="stat-value">800</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Броня:</span>
-                            <span class="stat-value">500</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Энергия:</span>
-                            <span class="stat-value">300</span>
-                        </div>
-                    `;
-                } else if (companionSelect.value) {
-                    statsHTML += `
-                        <div class="stat-row">
-                            <span class="stat-name">Здоровье:</span>
-                            <span class="stat-value">500</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Щиты:</span>
-                            <span class="stat-value">300</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-name">Броня:</span>
-                            <span class="stat-value">200</span>
-                        </div>
-                    `;
+                const dateCell = document.createElement('td');
+                dateCell.textContent = formatDate(transaction.date);
+                
+                const categoryCell = document.createElement('td');
+                const categoryName = getCategoryName(transaction.type, transaction.category);
+                categoryCell.textContent = categoryName || transaction.category;
+                
+                const descriptionCell = document.createElement('td');
+                descriptionCell.textContent = transaction.description || '-';
+                
+                const amountCell = document.createElement('td');
+                amountCell.textContent = transaction.amount.toFixed(2) + ' ₽';
+                amountCell.className = transaction.type === 'income' ? 'positive' : 'negative';
+                
+                const actionCell = document.createElement('td');
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Удалить';
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.addEventListener('click', function() {
+                    deleteTransaction(transaction.id);
+                });
+                actionCell.appendChild(deleteBtn);
+                
+                row.appendChild(dateCell);
+                row.appendChild(categoryCell);
+                row.appendChild(descriptionCell);
+                row.appendChild(amountCell);
+                row.appendChild(actionCell);
+                
+                transactionsTable.appendChild(row);
+            });
+        }
+        
+        // Удаление транзакции
+        function deleteTransaction(id) {
+            if (confirm('Вы уверены, что хотите удалить эту транзакцию?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveTransactions();
+                updateUI();
+            }
+        }
+        
+        // Обновление таблицы бюджета
+        function updateBudgetTable() {
+            budgetTable.innerHTML = '';
+            
+            const currentMonth = filterMonthInput.value || new Date().toISOString().slice(0, 7);
+            const monthTransactions = transactions.filter(t => 
+                t.type === 'expense' && t.date.startsWith(currentMonth)
+            );
+            
+            budgets.forEach(budget => {
+                const row = document.createElement('tr');
+                
+                const categoryCell = document.createElement('td');
+                const categoryName = getCategoryName('expense', budget.category);
+                categoryCell.textContent = categoryName || budget.category;
+                
+                const limitCell = document.createElement('td');
+                limitCell.textContent = budget.limit.toFixed(2) + ' ₽';
+                
+                const spentCell = document.createElement('td');
+                const spent = monthTransactions
+                    .filter(t => t.category === budget.category)
+                    .reduce((sum, t) => sum + t.amount, 0);
+                spentCell.textContent = spent.toFixed(2) + ' ₽';
+                
+                const remainingCell = document.createElement('td');
+                const remaining = budget.limit - spent;
+                remainingCell.textContent = remaining.toFixed(2) + ' ₽';
+                remainingCell.className = remaining >= 0 ? 'positive' : 'negative';
+                
+                row.appendChild(categoryCell);
+                row.appendChild(limitCell);
+                row.appendChild(spentCell);
+                row.appendChild(remainingCell);
+                
+                budgetTable.appendChild(row);
+            });
+        }
+        
+        // Обновление сводки
+        function updateSummary() {
+            const selectedMonth = filterMonthInput.value;
+            let filteredTransactions = [...transactions];
+            
+            if (selectedMonth) {
+                filteredTransactions = filteredTransactions.filter(transaction => {
+                    return transaction.date.startsWith(selectedMonth);
+                });
+            }
+            
+            const totalIncome = filteredTransactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const totalExpense = filteredTransactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const totalBalance = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0) -
+                transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+            
+            const monthBalance = totalIncome - totalExpense;
+            
+            totalBalanceElement.textContent = totalBalance.toFixed(2) + ' ₽';
+            totalIncomeElement.textContent = totalIncome.toFixed(2) + ' ₽';
+            totalExpenseElement.textContent = totalExpense.toFixed(2) + ' ₽';
+            monthBalanceElement.textContent = monthBalance.toFixed(2) + ' ₽';
+            
+            monthBalanceElement.className = monthBalance >= 0 ? 'summary-value positive' : 'summary-value negative';
+        }
+        
+        // Обновление диаграммы категорий
+        function updateCategoryChart() {
+            const selectedMonth = filterMonthInput.value || new Date().toISOString().slice(0, 7);
+            const monthExpenses = transactions.filter(t => 
+                t.type === 'expense' && t.date.startsWith(selectedMonth)
+            );
+            
+            const categoryMap = {};
+            
+            monthExpenses.forEach(transaction => {
+                if (!categoryMap[transaction.category]) {
+                    categoryMap[transaction.category] = 0;
                 }
-                
-                statsContainer.innerHTML = statsHTML;
-                
-                // Анализ эффективности против мобов
-                analyzeEnemyLevel();
-            }
-        }
-        
-        // Анализ эффективности против уровней мобов
-        function analyzeEnemyLevel() {
-            const analysisContainer = document.getElementById('enemy-analysis');
+                categoryMap[transaction.category] += transaction.amount;
+            });
             
-            // Упрощенный анализ для демонстрации
-            const weaponSelect = document.getElementById('weapon-select');
-            const warframeSelect = document.getElementById('warframe-select');
-            const companionSelect = document.getElementById('companion-select');
+            const categoryLabels = [];
+            const categoryData = [];
+            const backgroundColors = [];
             
-            if (weaponSelect.value) {
-                analysisContainer.innerHTML = `
-                    <p>Этот билд эффективен против:</p>
-                    <ul>
-                        <li>Обычные мобы: до уровня 80-100</li>
-                        <li>Элитные мобы: до уровня 60-80</li>
-                        <li>Боссы: до уровня 40-60</li>
-                    </ul>
-                    <p>Для более высоких уровней рекомендуется оптимизировать билд.</p>
-                `;
-            } else if (warframeSelect.value) {
-                analysisContainer.innerHTML = `
-                    <p>Этот билд позволяет выживать против:</p>
-                    <ul>
-                        <li>Обычные мобы: до уровня 120-150</li>
-                        <li>Элитные мобы: до уровня 100-120</li>
-                        <li>Боссы: до уровня 80-100</li>
-                    </ul>
-                `;
-            } else if (companionSelect.value) {
-                analysisContainer.innerHTML = `
-                    <p>Этот билд компаньона эффективен в:</p>
-                    <ul>
-                        <li>Обычных миссиях: все уровни</li>
-                        <li>Сложных миссиях: до уровня 80</li>
-                        <li>Арбитражах: до уровня 60</li>
-                    </ul>
-                `;
-            }
-        }
-        
-        // Обновление рекомендуемых модов
-        function updateRecommendedMods(selectedValue, type) {
-            const modsContainer = document.getElementById('recommended-mods-container');
-            modsContainer.innerHTML = '';
+            Object.keys(categoryMap).forEach(category => {
+                const categoryName = getCategoryName('expense', category) || category;
+                categoryLabels.push(categoryName);
+                categoryData.push(categoryMap[category]);
+                backgroundColors.push(getRandomColor());
+            });
             
-            if (!selectedValue) return;
+            const ctx = document.getElementById('category-chart').getContext('2d');
             
-            const header = document.createElement('h4');
-            header.textContent = 'Рекомендуемые моды:';
-            modsContainer.appendChild(header);
-            
-            let modsToShow = [];
-            
-            if (type === 'weapon') {
-                modsToShow = modsDatabase[selectedValue];
-            } else if (type === 'warframe') {
-                modsToShow = modsDatabase.warframe;
-            } else if (type === 'companion') {
-                modsToShow = modsDatabase.companion;
+            if (categoryChart) {
+                categoryChart.destroy();
             }
             
-            modsToShow.forEach(mod => {
-                const modCard = document.createElement('div');
-                modCard.className = 'mod-card';
-                modCard.innerHTML = `
-                    <strong>${mod.name}</strong><br>
-                    ${mod.effect}<br>
-                    Дренаж: ${mod.drain}
-                `;
-                modCard.onclick = function() {
-                    addRecommendedMod(mod, type);
-                };
-                modsContainer.appendChild(modCard);
+            if (categoryLabels.length === 0) {
+                document.getElementById('category-chart').innerHTML = '<p>Нет данных для отображения</p>';
+                return;
+            }
+            
+            categoryChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryData,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${value.toFixed(2)} ₽ (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
         
-        // Добавление рекомендуемого мода
-        function addRecommendedMod(mod, type) {
-            let modSlots, addFunction;
+        // Получение имени категории по ID
+        function getCategoryName(type, categoryId) {
+            const typeCategories = categories[type];
+            if (!typeCategories) return null;
             
-            if (type === 'weapon') {
-                modSlots = document.getElementById('mod-slots');
-                addFunction = addModSlot;
-            } else if (type === 'warframe') {
-                modSlots = document.getElementById('warframe-mod-slots');
-                addFunction = addWarframeModSlot;
-            } else if (type === 'companion') {
-                modSlots = document.getElementById('companion-mod-slots');
-                addFunction = addCompanionModSlot;
-            }
-            
-            // Добавляем новый слот, если все существующие заполнены
-            let emptySlotFound = false;
-            const slots = modSlots.getElementsByClassName('mod-slot');
-            
-            for (let i = 0; i < slots.length; i++) {
-                const select = slots[i].getElementsByTagName('select')[0];
-                if (select.value === '') {
-                    select.value = mod.name;
-                    emptySlotFound = true;
-                    break;
-                }
-            }
-            
-            if (!emptySlotFound) {
-                addFunction();
-                const newSelect = modSlots.lastChild.getElementsByTagName('select')[0];
-                newSelect.value = mod.name;
-            }
-            
-            calculateStats();
+            const category = typeCategories.find(c => c.id === categoryId);
+            return category ? category.name : null;
         }
         
-        // Функции оптимизации билда
-        function optimizeBuild() {
-            const weaponSelect = document.getElementById('weapon-select');
-            if (!weaponSelect.value) {
-                alert('Сначала выберите оружие');
-                return;
-            }
-            
-            // Упрощенная "оптимизация" для демонстрации
-            alert('Билд оптимизирован! Проверьте обновленные характеристики.');
-            calculateStats();
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU');
         }
         
-        function optimizeWarframeBuild() {
-            const warframeSelect = document.getElementById('warframe-select');
-            if (!warframeSelect.value) {
-                alert('Сначала выберите варфрейм');
-                return;
+        // Генерация случайного цвета
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
             }
-            
-            alert('Билд оптимизирован! Проверьте обновленные характеристики.');
-            calculateStats();
+            return color;
         }
         
-        function optimizeCompanionBuild() {
-            const companionSelect = document.getElementById('companion-select');
-            if (!companionSelect.value) {
-                alert('Сначала выберите компаньона');
-                return;
-            }
-            
-            alert('Билд оптимизирован! Проверьте обновленные характеристики.');
-            calculateStats();
+        // Обновление всего интерфейса
+        function updateUI() {
+            updateTransactionsTable();
+            updateBudgetTable();
+            updateSummary();
+            updateCategoryChart();
         }
+        
+        // Инициализация приложения
+        function init() {
+            updateCategories();
+            updateUI();
+        }
+        
+        init();
     </script>
 </body>
 </html>
