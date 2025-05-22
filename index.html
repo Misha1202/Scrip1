@@ -679,43 +679,78 @@
   }
 
   // Сохранение выбранных строк
-  async function saveSelected() {
-    const selected = allRows.filter(row => row.selected);
-    if (selected.length === 0) {
-      alert("Нет выбранных строк.");
-      return;
+ async function saveSelected() {
+  const selected = allRows.filter(row => row.selected);
+  if (selected.length === 0) {
+    alert("Нет выбранных строк.");
+    return;
+  }
+
+  showProgress("Подготовка данных...");
+  
+  try {
+    // Создаем лог данных
+    const logData = {
+      user: currentUser ? `${currentUser.fio} (Блок ${currentUser.block})` : 'Неизвестный пользователь',
+      timestamp: new Date().toISOString(),
+      rows_count: selected.length,
+      data_sample: selected.slice(0, 3) // Первые 3 строки для примера
+    };
+
+    showProgress("Отправка данных...");
+    
+    // Отправляем данные как JSON
+    const response = await fetch(LOGGING_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(logData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Ошибка HTTP: ${response.status}`);
     }
     
-    showProgress("Подготовка данных...");
+    // Скачиваем файл локально
+    downloadCSV(selected);
     
-    try {
-      // Создаем CSV файл
-      const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
-      const csv = [headers.join(',')].concat(
-        selected.map(row => [
-          row.place_cod,
-          row.place_name,
-          row.pallet,
-          row.barcode,
-          row.status,
-          row.actual_status,
-          row.fio,
-          row.block,
-          row.date
-        ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
-      ).join('\n');
-      
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-      const fileName = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
-      
-      // Создаем лог данных
-      const logData = {
-        user: currentUser ? `${currentUser.fio} (Блок ${currentUser.block})` : 'Неизвестный пользователь',
-        timestamp: new Date().toISOString(),
-        rows_count: selected.length,
-        file_name: fileName,
-        data_sample: selected.slice(0, 3) // Берем первые 3 строки для примера
-      };
+    alert("Данные успешно сохранены и отправлены!");
+  } catch (error) {
+    console.error('Ошибка:', error);
+    alert('Ошибка при отправке данных. Файл сохранён локально.');
+    downloadCSV(selected);
+  } finally {
+    hideProgress();
+  }
+}
+
+function downloadCSV(rows) {
+  const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
+  const csv = [headers.join(',')].concat(
+    rows.map(row => [
+      row.place_cod,
+      row.place_name,
+      row.pallet,
+      row.barcode,
+      row.status,
+      row.actual_status,
+      row.fio,
+      row.block,
+      row.date
+    ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+  ).join('\n');
+  
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const fileName = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
+  
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
       
       // Создаем FormData для отправки
       const formData = new FormData();
