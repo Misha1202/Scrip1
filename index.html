@@ -690,12 +690,7 @@
   
   try {
     // Создаем лог данных
-    const logData = {
-      user: currentUser ? `${currentUser.fio} (Блок ${currentUser.block})` : 'Неизвестный пользователь',
-      timestamp: new Date().toISOString(),
-      rows_count: selected.length,
-      data_sample: selected.slice(0, 3) // Первые 3 строки для примера
-    };
+const logData = { /* ... */ };
 
     showProgress("Отправка данных...");
     
@@ -725,7 +720,7 @@
   }
 }
 
-function downloadCSV(rows) {
+function generateCSVBlob(rows) {
   const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
   const csv = [headers.join(',')].concat(
     rows.map(row => [
@@ -740,35 +735,29 @@ function downloadCSV(rows) {
       row.date
     ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
   ).join('\n');
-  
+
   const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
   const fileName = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
-  
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  return { blob, fileName };
 }
       
       // Создаем FormData для отправки
-      const formData = new FormData();
-      formData.append('log', JSON.stringify(logData));
-      formData.append('file', blob, fileName);
-      
-      showProgress("Отправка данных...");
-      
-      // Отправляем данные
-      const response = await fetch(LOGGING_ENDPOINT, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Ошибка HTTP: ${response.status}`);
-      }
-      
+const formData = new FormData();
+formData.append('log', JSON.stringify(logData));
+formData.append('file', blob, fileName);
+
+showProgress("Отправка данных...");
+
+const response = await fetch(LOGGING_ENDPOINT, {
+  method: 'POST',
+  body: formData
+});
+
+if (!response.ok) {
+  throw new Error(`Ошибка HTTP: ${response.status}`);
+}
+
+alert("Данные успешно сохранены и отправлены!");
       // Скачиваем файл локально
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
