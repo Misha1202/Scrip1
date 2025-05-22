@@ -102,9 +102,38 @@
     .badge {
       cursor: pointer;
     }
+    .progress-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    .progress-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      width: 300px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
+
+<!-- Прогресс бар -->
+<div class="progress-container" id="progressContainer">
+  <div class="progress-content">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p id="progressText">Отправка данных...</p>
+  </div>
+</div>
 
 <!-- Модальное окно авторизации -->
 <div id="authModal" class="auth-modal">
@@ -244,6 +273,17 @@
       }
     });
   });
+
+  // Показать прогресс бар
+  function showProgress(message) {
+    document.getElementById('progressText').textContent = message;
+    document.getElementById('progressContainer').style.display = 'flex';
+  }
+
+  // Скрыть прогресс бар
+  function hideProgress() {
+    document.getElementById('progressContainer').style.display = 'none';
+  }
 
   // Проверка авторизации
   function checkAuth() {
@@ -639,74 +679,83 @@
   }
 
   // Сохранение выбранных строк
-  function saveSelected() {
+  async function saveSelected() {
     const selected = allRows.filter(row => row.selected);
     if (selected.length === 0) {
       alert("Нет выбранных строк.");
       return;
     }
     
-    const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
-    const csv = [headers.join(',')].concat(
-      selected.map(row => [
-        row.place_cod,
-        row.place_name,
-        row.pallet,
-        row.barcode,
-        row.status,
-        row.actual_status,
-        row.fio,
-        row.block,
-        row.date
-      ].join(','))
-    ).join('\n');
+    showProgress("Подготовка данных...");
     
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    
-    // Создаем лог данных
-    const logData = {
-      user: currentUser ? `${currentUser.fio} (Блок ${currentUser.block})` : 'Неизвестный пользователь',
-      timestamp: new Date().toISOString(),
-      rows_count: selected.length,
-      file_name: link.download,
-      data_sample: selected.slice(0, 3) // Берем первые 3 строки для примера
-    };
-    
-    // Отправляем лог
-    sendLog(logData);
-    
-    allRows.forEach(row => row.selected = false);
-    displayedRows.forEach(row => row.selected = false);
-    hasUnsavedChanges = true;
-    saveToLocalStorage();
-    renderTable();
-    document.getElementById('searchInput').focus();
-  }
-
-  // Отправка лога на сервер
-  function sendLog(logData) {
     try {
-      fetch(LOGGING_ENDPOINT, {
+      // Создаем CSV файл
+      const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
+      const csv = [headers.join(',')].concat(
+        selected.map(row => [
+          row.place_cod,
+          row.place_name,
+          row.pallet,
+          row.barcode,
+          row.status,
+          row.actual_status,
+          row.fio,
+          row.block,
+          row.date
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+      ).join('\n');
+      
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const fileName = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
+      
+      // Создаем лог данных
+      const logData = {
+        user: currentUser ? `${currentUser.fio} (Блок ${currentUser.block})` : 'Неизвестный пользователь',
+        timestamp: new Date().toISOString(),
+        rows_count: selected.length,
+        file_name: fileName,
+        data_sample: selected.slice(0, 3) // Берем первые 3 строки для примера
+      };
+      
+      // Создаем FormData для отправки
+      const formData = new FormData();
+      formData.append('log', JSON.stringify(logData));
+      formData.append('file', blob, fileName);
+      
+      showProgress("Отправка данных...");
+      
+      // Отправляем данные
+      const response = await fetch(LOGGING_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(logData)
-      })
-      .then(response => {
-        if (!response.ok) {
-          console.error('Ошибка при отправке лога:', response.statusText);
-        }
-      })
-      .catch(error => {
-        console.error('Ошибка при отправке лога:', error);
+        body: formData
       });
+      
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      
+      // Скачиваем файл локально
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Сбрасываем выбранные строки
+      allRows.forEach(row => row.selected = false);
+      displayedRows.forEach(row => row.selected = false);
+      hasUnsavedChanges = true;
+      saveToLocalStorage();
+      renderTable();
+      document.getElementById('searchInput').focus();
+      
+      alert("Данные успешно сохранены и отправлены!");
     } catch (error) {
-      console.error('Ошибка при отправке лога:', error);
+      console.error('Ошибка при сохранении данных:', error);
+      alert('Произошла ошибка при отправке данных. Пожалуйста, попробуйте еще раз.');
+    } finally {
+      hideProgress();
     }
   }
 
