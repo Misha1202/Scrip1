@@ -1,655 +1,726 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Финансовый менеджер - Учет расходов</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f7fa;
-        }
-        
-        header {
-            background-color: #4a6fa5;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1, h2, h3 {
-            margin-top: 0;
-        }
-        
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        
-        button {
-            background-color: #4a6fa5;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #3a5a80;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background-color: #f2f2f2;
-        }
-        
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .summary-item {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        
-        .summary-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .chart-container {
-            height: 300px;
-            margin-top: 20px;
-        }
-        
-        .negative {
-            color: #e74c3c;
-        }
-        
-        .positive {
-            color: #2ecc71;
-        }
-        
-        .delete-btn {
-            background-color: #e74c3c;
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        .delete-btn:hover {
-            background-color: #c0392b;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            .summary {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
+  <title>Проверка Excel-файла</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+    }
+    .container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .card {
+      flex: 1;
+      margin: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      white-space: nowrap;
+      font-size: 1em;
+    }
+    .input-group {
+      margin-bottom: 20px;
+    }
+    input, button, select {
+      font-size: 1em;
+    }
+    .table th {
+      background-color: #007bff;
+      color: white;
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+      background-color: #f1f1f1;
+    }
+    .table td, .table th {
+      padding: 8px;
+      text-align: center;
+    }
+    .table th {
+      border-top: 2px solid #007bff;
+      border-bottom: 2px solid #007bff;
+    }
+    .table td {
+      border-bottom: 1px solid #dee2e6;
+    }
+    .table-responsive {
+      overflow-y: auto;
+      height: 60vh;
+    }
+    @media (max-width: 576px) {
+      th, td { font-size: 0.9em; }
+    }
+    .editable {
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 3px;
+      transition: background-color 0.2s;
+    }
+    .editable:hover {
+      background-color: #e9ecef;
+    }
+    .editable-input {
+      width: 100%;
+      padding: 4px;
+      border: 1px solid #ced4da;
+      border-radius: 3px;
+    }
+    .status-select {
+      min-width: 180px;
+    }
+    .auth-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .auth-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 5px;
+      width: 300px;
+    }
+    .add-row-input {
+      margin-bottom: 5px;
+    }
+    .badge {
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Персональный финансовый менеджер</h1>
-        <p>Контролируйте свои расходы и оптимизируйте бюджет</p>
-    </header>
-    
-    <div class="summary">
-        <div class="summary-item">
-            <h3>Общий баланс</h3>
-            <div class="summary-value" id="total-balance">0 ₽</div>
-            <p>За все время</p>
-        </div>
-        <div class="summary-item">
-            <h3>Доходы</h3>
-            <div class="summary-value positive" id="total-income">0 ₽</div>
-            <p>За текущий месяц</p>
-        </div>
-        <div class="summary-item">
-            <h3>Расходы</h3>
-            <div class="summary-value negative" id="total-expense">0 ₽</div>
-            <p>За текущий месяц</p>
-        </div>
-        <div class="summary-item">
-            <h3>Остаток</h3>
-            <div class="summary-value" id="month-balance">0 ₽</div>
-            <p>За текущий месяц</p>
-        </div>
+
+<!-- Модальное окно авторизации -->
+<div id="authModal" class="auth-modal">
+  <div class="auth-content">
+    <h3 class="text-center mb-4">Авторизация</h3>
+    <div class="mb-3">
+      <label for="userFio" class="form-label">ФИО:</label>
+      <input type="text" class="form-control" id="userFio" placeholder="Введите ваше ФИО">
     </div>
-    
-    <div class="container">
-        <div>
-            <div class="card">
-                <h2>Добавить транзакцию</h2>
-                <form id="transaction-form">
-                    <div class="form-group">
-                        <label for="type">Тип операции</label>
-                        <select id="type" required>
-                            <option value="">Выберите тип</option>
-                            <option value="income">Доход</option>
-                            <option value="expense">Расход</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="category">Категория</label>
-                        <select id="category" required>
-                            <option value="">Выберите категорию</option>
-                            <!-- Категории будут заполнены JavaScript -->
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="amount">Сумма</label>
-                        <input type="number" id="amount" min="0" step="0.01" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="date">Дата</label>
-                        <input type="date" id="date" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description">Описание</label>
-                        <input type="text" id="description" placeholder="Необязательное поле">
-                    </div>
-                    
-                    <button type="submit">Добавить транзакцию</button>
-                </form>
-            </div>
-            
-            <div class="card">
-                <h2>Статистика по категориям</h2>
-                <div class="chart-container">
-                    <canvas id="category-chart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div>
-            <div class="card">
-                <h2>История транзакций</h2>
-                <div class="form-group">
-                    <label for="filter-month">Фильтр по месяцу</label>
-                    <input type="month" id="filter-month">
-                </div>
-                
-                <table id="transactions-table">
-                    <thead>
-                        <tr>
-                            <th>Дата</th>
-                            <th>Категория</th>
-                            <th>Описание</th>
-                            <th>Сумма</th>
-                            <th>Действие</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Транзакции будут добавлены через JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="card">
-                <h2>Бюджет на категории</h2>
-                <table id="budget-table">
-                    <thead>
-                        <tr>
-                            <th>Категория</th>
-                            <th>Лимит</th>
-                            <th>Потрачено</th>
-                            <th>Остаток</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Бюджет будет добавлен через JavaScript -->
-                    </tbody>
-                </table>
-                <button id="add-budget-btn" style="margin-top: 15px;">Добавить бюджет</button>
-            </div>
-        </div>
+    <div class="mb-3">
+      <label for="userBlock" class="form-label">Блок:</label>
+      <input type="text" class="form-control" id="userBlock" placeholder="Введите номер блока">
     </div>
+    <button class="btn btn-primary w-100" onclick="login()">Войти</button>
+  </div>
+</div>
+
+<div class="container" id="mainContent" style="display:none;">
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-4 text-center">Проверка Excel-файла</h3>
+      <div class="d-flex justify-content-between mb-3">
+        <div>
+          <span id="userInfo" class="fw-bold"></span>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="logout()">Выйти</button>
+      </div>
+
+      <!-- Форма загрузки файла -->
+      <div class="mb-3">
+        <input type="file" class="form-control" id="fileInput" accept=".xlsx">
+      </div>
+
+      <!-- Поиск -->
+      <div class="input-group mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Поиск по place_cod, place_name, Паллет, Баркод">
+        <button class="btn btn-primary" onclick="search()">Поиск</button>
+        <button class="btn btn-success" onclick="saveSelected()">Сохранить</button>
+        <button class="btn btn-danger" onclick="clearAllData()">Очистить все</button>
+      </div>
+
+      <!-- Форма добавления новой записи -->
+      <div class="mb-4 p-3 border rounded">
+        <h5>Добавить новую запись:</h5>
+        <div class="row g-2">
+          <div class="col-md-2">
+            <input type="text" id="addPlaceCod" class="form-control add-row-input" placeholder="place_cod">
+          </div>
+          <div class="col-md-2">
+            <input type="text" id="addPlaceName" class="form-control add-row-input" placeholder="place_name">
+          </div>
+          <div class="col-md-2">
+            <input type="text" id="addPallet" class="form-control add-row-input" placeholder="Паллет">
+          </div>
+          <div class="col-md-2">
+            <input type="text" id="addBarcode" class="form-control add-row-input" placeholder="Баркод">
+          </div>
+          <div class="col-md-2">
+            <select id="addStatus" class="form-select add-row-input">
+              <option value="" selected disabled>Статус</option>
+              <option value="На МХ">На МХ</option>
+              <option value="Совпадает">Совпадает</option>
+              <option value="Буфер">Буфер</option>
+              <option value="Списано">Списано</option>
+              <option value="Не на своём МХ">Не на своём МХ</option>
+              <option value="Хлам">Хлам</option>
+              <option value="ШК">ШК</option>
+              <option value="Нет на МХ">Нет на МХ</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-outline-primary w-100" onclick="addRow()">Добавить запись</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Выпадающий список статусов -->
+      <div class="mb-3">
+        <select id="statusSelect" class="form-select status-select" onchange="applyStatusToSelected()">
+          <option value="" selected disabled>Выберите актуальный статус</option>
+          <option value="На МХ">На МХ</option>
+          <option value="Совпадает">Совпадает</option>
+          <option value="Буфер">Буфер</option>
+          <option value="Списано">Списано</option>
+          <option value="Не на своём МХ">Не на своём МХ</option>
+          <option value="Хлам">Хлам</option>
+          <option value="ШК">ШК</option>
+          <option value="Нет на МХ">Нет на МХ</option>
+        </select>
+      </div>
+
+      <!-- Таблица -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle" id="dataTable">
+          <thead class="table-light">
+            <tr>
+              <th width="40">✔</th>
+              <th>place_cod</th>
+              <th>place_name</th>
+              <th>Паллет</th>
+              <th>Баркод</th>
+              <th>Статус</th>
+              <th>Актуальный статус</th>
+              <th>ФИО</th>
+              <th>Блок</th>
+              <th>Дата</th>
+            </tr>
+          </thead>
+          <tbody id="results"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allRows = [];
+  let displayedRows = [];
+  let hasUnsavedChanges = false;
+  let currentUser = null;
+
+  const COLUMNS = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус'];
+  const STORAGE_KEY = 'excelCheckerData';
+  const USER_STORAGE_KEY = 'excelCheckerUser';
+  const LOGGING_ENDPOINT = 'https://band.wb.ru/hooks/3iojdc9u6inxuq6ukn4kikynxw';
+
+  // Инициализация при загрузке страницы
+  document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+    loadFromLocalStorage();
+    setupBeforeUnloadWarning();
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Категории доходов и расходов
-        const categories = {
-            income: [
-                { id: 'salary', name: 'Зарплата' },
-                { id: 'bonus', name: 'Премия' },
-                { id: 'freelance', name: 'Фриланс' },
-                { id: 'investments', name: 'Инвестиции' },
-                { id: 'other_income', name: 'Другие доходы' }
-            ],
-            expense: [
-                { id: 'food', name: 'Продукты' },
-                { id: 'transport', name: 'Транспорт' },
-                { id: 'utilities', name: 'Коммунальные услуги' },
-                { id: 'entertainment', name: 'Развлечения' },
-                { id: 'health', name: 'Здоровье' },
-                { id: 'education', name: 'Образование' },
-                { id: 'clothing', name: 'Одежда' },
-                { id: 'other_expense', name: 'Другие расходы' }
-            ]
-        };
-        
-        // Локальное хранилище для транзакций
-        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
-        
-        // Локальное хранилище для бюджета
-        let budgets = JSON.parse(localStorage.getItem('budgets')) || [];
-        
-        // Инициализация Chart.js
-        let categoryChart;
-        
-        // DOM элементы
-        const transactionForm = document.getElementById('transaction-form');
-        const typeSelect = document.getElementById('type');
-        const categorySelect = document.getElementById('category');
-        const amountInput = document.getElementById('amount');
-        const dateInput = document.getElementById('date');
-        const descriptionInput = document.getElementById('description');
-        const transactionsTable = document.getElementById('transactions-table').querySelector('tbody');
-        const budgetTable = document.getElementById('budget-table').querySelector('tbody');
-        const totalBalanceElement = document.getElementById('total-balance');
-        const totalIncomeElement = document.getElementById('total-income');
-        const totalExpenseElement = document.getElementById('total-expense');
-        const monthBalanceElement = document.getElementById('month-balance');
-        const filterMonthInput = document.getElementById('filter-month');
-        const addBudgetBtn = document.getElementById('add-budget-btn');
-        
-        // Установка текущей даты по умолчанию
-        dateInput.valueAsDate = new Date();
-        
-        // Обработчик изменения типа операции
-        typeSelect.addEventListener('change', function() {
-            updateCategories();
-        });
-        
-        // Обработчик отправки формы транзакции
-        transactionForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const transaction = {
-                id: Date.now(),
-                type: typeSelect.value,
-                category: categorySelect.value,
-                amount: parseFloat(amountInput.value),
-                date: dateInput.value,
-                description: descriptionInput.value
-            };
-            
-            transactions.push(transaction);
-            saveTransactions();
-            updateUI();
-            
-            // Сброс формы
-            transactionForm.reset();
-            dateInput.valueAsDate = new Date();
-        });
-        
-        // Обработчик фильтра по месяцу
-        filterMonthInput.addEventListener('change', function() {
-            updateTransactionsTable();
-            updateSummary();
-        });
-        
-        // Обработчик кнопки добавления бюджета
-        addBudgetBtn.addEventListener('click', function() {
-            const category = prompt('Введите категорию расходов:');
-            if (!category) return;
-            
-            const limit = parseFloat(prompt('Введите лимит для категории:'));
-            if (isNaN(limit) || limit <= 0) {
-                alert('Пожалуйста, введите корректную сумму');
-                return;
-            }
-            
-            const existingBudgetIndex = budgets.findIndex(b => b.category === category);
-            
-            if (existingBudgetIndex !== -1) {
-                budgets[existingBudgetIndex].limit = limit;
-            } else {
-                budgets.push({
-                    category,
-                    limit
-                });
-            }
-            
-            saveBudgets();
-            updateBudgetTable();
-        });
-        
-        // Обновление списка категорий в зависимости от выбранного типа
-        function updateCategories() {
-            categorySelect.innerHTML = '<option value="">Выберите категорию</option>';
-            
-            const selectedType = typeSelect.value;
-            if (!selectedType) return;
-            
-            const typeCategories = categories[selectedType];
-            typeCategories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                categorySelect.appendChild(option);
-            });
+    document.getElementById('searchInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        search();
+        this.value = '';
+      }
+    });
+  });
+
+  // Проверка авторизации
+  function checkAuth() {
+    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
+    if (savedUser) {
+      try {
+        currentUser = JSON.parse(savedUser);
+        showMainContent();
+      } catch (e) {
+        showAuthModal();
+      }
+    } else {
+      showAuthModal();
+    }
+  }
+
+  // Показать модальное окно авторизации
+  function showAuthModal() {
+    document.getElementById('authModal').style.display = 'block';
+    document.getElementById('userFio').focus();
+  }
+
+  // Скрыть модальное окно авторизации
+  function hideAuthModal() {
+    document.getElementById('authModal').style.display = 'none';
+  }
+
+  // Показать основной контент
+  function showMainContent() {
+    document.getElementById('mainContent').style.display = 'flex';
+    document.getElementById('userInfo').textContent = `${currentUser.fio} (Блок ${currentUser.block})`;
+    document.getElementById('searchInput').focus();
+  }
+
+  // Вход в систему
+  function login() {
+    const fio = document.getElementById('userFio').value.trim();
+    const block = document.getElementById('userBlock').value.trim();
+    
+    if (!fio || !block) {
+      alert('Пожалуйста, заполните все поля');
+      return;
+    }
+    
+    currentUser = { fio, block };
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+    hideAuthModal();
+    showMainContent();
+  }
+
+  // Выход из системы
+  function logout() {
+    if (confirm('Вы уверены, что хотите выйти?')) {
+      localStorage.removeItem(USER_STORAGE_KEY);
+      currentUser = null;
+      document.getElementById('mainContent').style.display = 'none';
+      showAuthModal();
+    }
+  }
+
+  // Загрузка данных из localStorage
+  function loadFromLocalStorage() {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (Array.isArray(parsedData)) {
+          allRows = parsedData;
         }
+      } catch (e) {
+        console.error('Ошибка при загрузке данных:', e);
+      }
+    }
+  }
+
+  // Сохранение данных в localStorage
+  function saveToLocalStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allRows));
+      hasUnsavedChanges = false;
+    } catch (e) {
+      console.error('Ошибка при сохранении данных:', e);
+    }
+  }
+
+  // Предупреждение при закрытии страницы
+  function setupBeforeUnloadWarning() {
+    window.addEventListener('beforeunload', (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
+        return e.returnValue;
+      }
+    });
+  }
+
+  // Загрузка файла Excel
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        const header = rows[0];
+        const indices = COLUMNS.map(col => header.indexOf(col));
         
-        // Сохранение транзакций в localStorage
-        function saveTransactions() {
-            localStorage.setItem('transactions', JSON.stringify(transactions));
+        const newRows = rows.slice(1).map((row, index) => ({
+          place_cod: row[indices[0]] || '',
+          place_name: row[indices[1]] || '',
+          pallet: row[indices[2]] || '',
+          barcode: row[indices[3]] || '',
+          status: row[indices[4]] || '',
+          actual_status: '',
+          fio: currentUser.fio,
+          block: currentUser.block,
+          date: new Date().toLocaleString(),
+          id: allRows.length + index,
+          selected: false
+        }));
+        
+        allRows = [...allRows, ...newRows];
+        hasUnsavedChanges = true;
+        saveToLocalStorage();
+        search();
+      } catch (error) {
+        console.error('Ошибка при обработке файла:', error);
+        alert('Ошибка при чтении файла. Проверьте формат.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  // Добавление строки
+  function addRow() {
+    const placeCod = document.getElementById('addPlaceCod').value.trim();
+    const placeName = document.getElementById('addPlaceName').value.trim();
+    const pallet = document.getElementById('addPallet').value.trim();
+    const barcode = document.getElementById('addBarcode').value.trim();
+    const status = document.getElementById('addStatus').value;
+    
+    if (!placeCod || !placeName || !pallet || !barcode || !status) {
+      alert('Пожалуйста, заполните все поля');
+      return;
+    }
+    
+    const newRow = {
+      place_cod: placeCod,
+      place_name: placeName,
+      pallet: pallet,
+      barcode: barcode,
+      status: status,
+      actual_status: '',
+      fio: currentUser.fio,
+      block: currentUser.block,
+      date: new Date().toLocaleString(),
+      id: allRows.length,
+      selected: false
+    };
+    
+    allRows.push(newRow);
+    
+    // Очищаем поля ввода
+    document.getElementById('addPlaceCod').value = '';
+    document.getElementById('addPlaceName').value = '';
+    document.getElementById('addPallet').value = '';
+    document.getElementById('addBarcode').value = '';
+    document.getElementById('addStatus').value = '';
+    
+    hasUnsavedChanges = true;
+    saveToLocalStorage();
+    search();
+    document.getElementById('addPlaceCod').focus();
+  }
+
+  // Поиск по цифрам в place_cod, place_name, Паллет, Баркод
+  function search() {
+    const input = document.getElementById('searchInput').value.trim();
+    const digitsOnly = input.replace(/\D/g, '');
+    
+    if (!digitsOnly) {
+      displayedRows = [];
+      renderTable();
+      document.getElementById('searchInput').value = '';
+      return;
+    }
+    
+    displayedRows = allRows.filter(row => {
+      return (
+        (row.place_cod && row.place_cod.toString().includes(digitsOnly)) ||
+        (row.place_name && row.place_name.toString().includes(digitsOnly)) ||
+        (row.pallet && row.pallet.toString().includes(digitsOnly)) ||
+        (row.barcode && row.barcode.toString().includes(digitsOnly))
+      );
+    }).slice(0, 100);
+    
+    renderTable();
+    document.getElementById('searchInput').value = '';
+  }
+
+  // Отображение таблицы с возможностью редактирования
+  function renderTable() {
+    const body = document.getElementById('results');
+    body.innerHTML = '';
+    
+    if (displayedRows.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="10" class="text-center text-muted">Нет данных для отображения</td>`;
+      body.appendChild(tr);
+      return;
+    }
+    
+    displayedRows.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      const checkbox = `<td><input type="checkbox" ${row.selected ? 'checked' : ''} onchange="toggleSelect(${i})"></td>`;
+      
+      const createEditableCell = (value, field, rowId) => {
+        return `<div class="editable" onclick="startEdit(this, '${field}', ${rowId})">${value || '—'}</div>`;
+      };
+      
+      const createEditableStatus = (value, field, rowId, isActual = false) => {
+        if (!value) value = '—';
+        const colorClass = statusColor(value);
+        return `<span class="badge text-bg-${colorClass}" onclick="editStatus(this, '${field}', ${rowId}, ${isActual})">${value}</span>`;
+      };
+      
+      const cells = [
+        `<td>${createEditableCell(row.place_cod, 'place_cod', row.id)}</td>`,
+        `<td>${createEditableCell(row.place_name, 'place_name', row.id)}</td>`,
+        `<td>${createEditableCell(row.pallet, 'pallet', row.id)}</td>`,
+        `<td>${createEditableCell(row.barcode, 'barcode', row.id)}</td>`,
+        `<td>${createEditableStatus(row.status, 'status', row.id)}</td>`,
+        `<td>${createEditableStatus(row.actual_status, 'actual_status', row.id, true)}</td>`,
+        `<td>${row.fio}</td>`,
+        `<td>${row.block}</td>`,
+        `<td>${row.date}</td>`
+      ];
+      
+      tr.innerHTML = checkbox + cells.join('');
+      body.appendChild(tr);
+    });
+  }
+
+  // Начало редактирования ячейки
+  function startEdit(element, field, rowId) {
+    const currentValue = element.textContent === '—' ? '' : element.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'editable-input';
+    input.value = currentValue;
+    
+    element.innerHTML = '';
+    element.appendChild(input);
+    input.focus();
+    
+    const saveEdit = () => {
+      const newValue = input.value.trim();
+      updateRowData(rowId, field, newValue);
+      element.innerHTML = newValue || '—';
+    };
+    
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        saveEdit();
+      }
+    });
+  }
+
+  // Редактирование статуса
+  function editStatus(element, field, rowId, isActual = false) {
+    const statuses = [
+      'На МХ','Совпадает', 'Буфер', 'Списано', 
+      'Не на своём МХ', 'Хлам', 'ШК','Нет на МХ'
+    ];
+    
+    const currentValue = element.textContent === '—' ? '' : element.textContent;
+    const select = document.createElement('select');
+    select.className = 'form-select form-select-sm';
+    
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '—';
+    select.appendChild(emptyOption);
+    
+    statuses.forEach(status => {
+      const option = document.createElement('option');
+      option.value = status;
+      option.textContent = status;
+      if (status === currentValue) option.selected = true;
+      select.appendChild(option);
+    });
+    
+    element.innerHTML = '';
+    element.appendChild(select);
+    select.focus();
+    
+    const saveEdit = () => {
+      const newValue = select.value;
+      updateRowData(rowId, field, newValue);
+      
+      const colorClass = statusColor(newValue);
+      element.className = `badge text-bg-${colorClass}`;
+      element.textContent = newValue || '—';
+    };
+    
+    select.addEventListener('change', saveEdit);
+    select.addEventListener('blur', saveEdit);
+  }
+
+  // Обновление данных строки
+  function updateRowData(rowId, field, newValue) {
+    const rowIndex = allRows.findIndex(r => r.id === rowId);
+    if (rowIndex !== -1) {
+      const oldValue = allRows[rowIndex][field];
+      allRows[rowIndex][field] = newValue;
+      allRows[rowIndex].fio = currentUser.fio;
+      allRows[rowIndex].block = currentUser.block;
+      allRows[rowIndex].date = new Date().toLocaleString();
+      
+      const displayedIndex = displayedRows.findIndex(r => r.id === rowId);
+      if (displayedIndex !== -1) {
+        displayedRows[displayedIndex][field] = newValue;
+        displayedRows[displayedIndex].fio = currentUser.fio;
+        displayedRows[displayedIndex].block = currentUser.block;
+        displayedRows[displayedIndex].date = new Date().toLocaleString();
+      }
+      
+      hasUnsavedChanges = true;
+      saveToLocalStorage();
+    }
+  }
+
+  // Цвет статуса
+  function statusColor(status) {
+    switch(status) {
+      case 'На МХ': return 'success';
+      case 'Совпадает': return 'success';
+      case 'Буфер': return 'primary';
+      case 'Списано': return 'danger';
+      case 'Не на своём МХ': return 'warning';
+      case 'Хлам': return 'secondary';
+      case 'ШК': return 'info';
+      case 'Нет на МХ': return 'info'; 
+      default: return 'light';
+    }
+  }
+
+  // Выбор строки
+  function toggleSelect(index) {
+    displayedRows[index].selected = !displayedRows[index].selected;
+    const allRowIndex = allRows.findIndex(r => r.id === displayedRows[index].id);
+    if (allRowIndex !== -1) {
+      allRows[allRowIndex].selected = displayedRows[index].selected;
+      hasUnsavedChanges = true;
+      saveToLocalStorage();
+    }
+  }
+
+  // Применение статуса к выбранным строкам
+  function applyStatusToSelected() {
+    const select = document.getElementById('statusSelect');
+    const status = select.value;
+    if (!status) return;
+    
+    const selectedRows = displayedRows.filter(row => row.selected);
+    if (selectedRows.length === 0) {
+      alert('Нет выбранных строк');
+      return;
+    }
+    
+    selectedRows.forEach((row, index) => {
+      row.actual_status = status;
+      
+      const allRowIndex = allRows.findIndex(r => r.id === row.id);
+      if (allRowIndex !== -1) {
+        allRows[allRowIndex].actual_status = status;
+        allRows[allRowIndex].fio = currentUser.fio;
+        allRows[allRowIndex].block = currentUser.block;
+        allRows[allRowIndex].date = new Date().toLocaleString();
+      }
+    });
+    
+    select.value = '';
+    hasUnsavedChanges = true;
+    saveToLocalStorage();
+    renderTable();
+    document.getElementById('searchInput').focus();
+  }
+
+  // Сохранение выбранных строк
+  function saveSelected() {
+    const selected = allRows.filter(row => row.selected);
+    if (selected.length === 0) {
+      alert("Нет выбранных строк.");
+      return;
+    }
+    
+    const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
+    const csv = [headers.join(',')].concat(
+      selected.map(row => [
+        row.place_cod,
+        row.place_name,
+        row.pallet,
+        row.barcode,
+        row.status,
+        row.actual_status,
+        row.fio,
+        row.block,
+        row.date
+      ].join(','))
+    ).join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    
+    // Создаем лог данных
+    const logData = {
+      user: currentUser ? `${currentUser.fio} (Блок ${currentUser.block})` : 'Неизвестный пользователь',
+      timestamp: new Date().toISOString(),
+      rows_count: selected.length,
+      file_name: link.download,
+      data_sample: selected.slice(0, 3) // Берем первые 3 строки для примера
+    };
+    
+    // Отправляем лог
+    sendLog(logData);
+    
+    allRows.forEach(row => row.selected = false);
+    displayedRows.forEach(row => row.selected = false);
+    hasUnsavedChanges = true;
+    saveToLocalStorage();
+    renderTable();
+    document.getElementById('searchInput').focus();
+  }
+
+  // Отправка лога на сервер
+  function sendLog(logData) {
+    try {
+      fetch(LOGGING_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(logData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          console.error('Ошибка при отправке лога:', response.statusText);
         }
-        
-        // Сохранение бюджета в localStorage
-        function saveBudgets() {
-            localStorage.setItem('budgets', JSON.stringify(budgets));
-        }
-        
-        // Обновление таблицы транзакций
-        function updateTransactionsTable() {
-            transactionsTable.innerHTML = '';
-            
-            const selectedMonth = filterMonthInput.value;
-            let filteredTransactions = [...transactions];
-            
-            if (selectedMonth) {
-                filteredTransactions = filteredTransactions.filter(transaction => {
-                    return transaction.date.startsWith(selectedMonth);
-                });
-            }
-            
-            filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            filteredTransactions.forEach(transaction => {
-                const row = document.createElement('tr');
-                
-                const dateCell = document.createElement('td');
-                dateCell.textContent = formatDate(transaction.date);
-                
-                const categoryCell = document.createElement('td');
-                const categoryName = getCategoryName(transaction.type, transaction.category);
-                categoryCell.textContent = categoryName || transaction.category;
-                
-                const descriptionCell = document.createElement('td');
-                descriptionCell.textContent = transaction.description || '-';
-                
-                const amountCell = document.createElement('td');
-                amountCell.textContent = transaction.amount.toFixed(2) + ' ₽';
-                amountCell.className = transaction.type === 'income' ? 'positive' : 'negative';
-                
-                const actionCell = document.createElement('td');
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Удалить';
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.addEventListener('click', function() {
-                    deleteTransaction(transaction.id);
-                });
-                actionCell.appendChild(deleteBtn);
-                
-                row.appendChild(dateCell);
-                row.appendChild(categoryCell);
-                row.appendChild(descriptionCell);
-                row.appendChild(amountCell);
-                row.appendChild(actionCell);
-                
-                transactionsTable.appendChild(row);
-            });
-        }
-        
-        // Удаление транзакции
-        function deleteTransaction(id) {
-            if (confirm('Вы уверены, что хотите удалить эту транзакцию?')) {
-                transactions = transactions.filter(t => t.id !== id);
-                saveTransactions();
-                updateUI();
-            }
-        }
-        
-        // Обновление таблицы бюджета
-        function updateBudgetTable() {
-            budgetTable.innerHTML = '';
-            
-            const currentMonth = filterMonthInput.value || new Date().toISOString().slice(0, 7);
-            const monthTransactions = transactions.filter(t => 
-                t.type === 'expense' && t.date.startsWith(currentMonth)
-            );
-            
-            budgets.forEach(budget => {
-                const row = document.createElement('tr');
-                
-                const categoryCell = document.createElement('td');
-                const categoryName = getCategoryName('expense', budget.category);
-                categoryCell.textContent = categoryName || budget.category;
-                
-                const limitCell = document.createElement('td');
-                limitCell.textContent = budget.limit.toFixed(2) + ' ₽';
-                
-                const spentCell = document.createElement('td');
-                const spent = monthTransactions
-                    .filter(t => t.category === budget.category)
-                    .reduce((sum, t) => sum + t.amount, 0);
-                spentCell.textContent = spent.toFixed(2) + ' ₽';
-                
-                const remainingCell = document.createElement('td');
-                const remaining = budget.limit - spent;
-                remainingCell.textContent = remaining.toFixed(2) + ' ₽';
-                remainingCell.className = remaining >= 0 ? 'positive' : 'negative';
-                
-                row.appendChild(categoryCell);
-                row.appendChild(limitCell);
-                row.appendChild(spentCell);
-                row.appendChild(remainingCell);
-                
-                budgetTable.appendChild(row);
-            });
-        }
-        
-        // Обновление сводки
-        function updateSummary() {
-            const selectedMonth = filterMonthInput.value;
-            let filteredTransactions = [...transactions];
-            
-            if (selectedMonth) {
-                filteredTransactions = filteredTransactions.filter(transaction => {
-                    return transaction.date.startsWith(selectedMonth);
-                });
-            }
-            
-            const totalIncome = filteredTransactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0);
-            
-            const totalExpense = filteredTransactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + t.amount, 0);
-            
-            const totalBalance = transactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0) -
-                transactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + t.amount, 0);
-            
-            const monthBalance = totalIncome - totalExpense;
-            
-            totalBalanceElement.textContent = totalBalance.toFixed(2) + ' ₽';
-            totalIncomeElement.textContent = totalIncome.toFixed(2) + ' ₽';
-            totalExpenseElement.textContent = totalExpense.toFixed(2) + ' ₽';
-            monthBalanceElement.textContent = monthBalance.toFixed(2) + ' ₽';
-            
-            monthBalanceElement.className = monthBalance >= 0 ? 'summary-value positive' : 'summary-value negative';
-        }
-        
-        // Обновление диаграммы категорий
-        function updateCategoryChart() {
-            const selectedMonth = filterMonthInput.value || new Date().toISOString().slice(0, 7);
-            const monthExpenses = transactions.filter(t => 
-                t.type === 'expense' && t.date.startsWith(selectedMonth)
-            );
-            
-            const categoryMap = {};
-            
-            monthExpenses.forEach(transaction => {
-                if (!categoryMap[transaction.category]) {
-                    categoryMap[transaction.category] = 0;
-                }
-                categoryMap[transaction.category] += transaction.amount;
-            });
-            
-            const categoryLabels = [];
-            const categoryData = [];
-            const backgroundColors = [];
-            
-            Object.keys(categoryMap).forEach(category => {
-                const categoryName = getCategoryName('expense', category) || category;
-                categoryLabels.push(categoryName);
-                categoryData.push(categoryMap[category]);
-                backgroundColors.push(getRandomColor());
-            });
-            
-            const ctx = document.getElementById('category-chart').getContext('2d');
-            
-            if (categoryChart) {
-                categoryChart.destroy();
-            }
-            
-            if (categoryLabels.length === 0) {
-                document.getElementById('category-chart').innerHTML = '<p>Нет данных для отображения</p>';
-                return;
-            }
-            
-            categoryChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: categoryLabels,
-                    datasets: [{
-                        data: categoryData,
-                        backgroundColor: backgroundColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${value.toFixed(2)} ₽ (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Получение имени категории по ID
-        function getCategoryName(type, categoryId) {
-            const typeCategories = categories[type];
-            if (!typeCategories) return null;
-            
-            const category = typeCategories.find(c => c.id === categoryId);
-            return category ? category.name : null;
-        }
-        
-        // Форматирование даты
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('ru-RU');
-        }
-        
-        // Генерация случайного цвета
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-        
-        // Обновление всего интерфейса
-        function updateUI() {
-            updateTransactionsTable();
-            updateBudgetTable();
-            updateSummary();
-            updateCategoryChart();
-        }
-        
-        // Инициализация приложения
-        function init() {
-            updateCategories();
-            updateUI();
-        }
-        
-        init();
-    </script>
+      })
+      .catch(error => {
+        console.error('Ошибка при отправке лога:', error);
+      });
+    } catch (error) {
+      console.error('Ошибка при отправке лога:', error);
+    }
+  }
+
+  // Очистка всех данных
+  function clearAllData() {
+    if (confirm('Вы уверены, что хотите удалить все данные?')) {
+      const rowsCount = allRows.length;
+      allRows = [];
+      displayedRows = [];
+      localStorage.removeItem(STORAGE_KEY);
+      renderTable();
+      document.getElementById('searchInput').focus();
+    }
+  }
+</script>
 </body>
 </html>
