@@ -1,799 +1,511 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
-  <title>Проверка Excel-файла</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    body {
-      padding: 0;
-      margin: 0;
-      background-color: #f8f9fa;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      height: 100vh;
-    }
-    .container {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
-    .card {
-      flex: 1;
-      margin: 20px;
-      overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    th, td {
-      white-space: nowrap;
-      font-size: 1em;
-    }
-    .input-group {
-      margin-bottom: 20px;
-    }
-    input, button, select {
-      font-size: 1em;
-    }
-    .table th {
-      background-color: #007bff;
-      color: white;
-    }
-    .table-striped tbody tr:nth-of-type(odd) {
-      background-color: #f1f1f1;
-    }
-    .table td, .table th {
-      padding: 8px;
-      text-align: center;
-    }
-    .table th {
-      border-top: 2px solid #007bff;
-      border-bottom: 2px solid #007bff;
-    }
-    .table td {
-      border-bottom: 1px solid #dee2e6;
-    }
-    .table-responsive {
-      overflow-y: auto;
-      height: 60vh;
-    }
-    @media (max-width: 576px) {
-      th, td { font-size: 0.9em; }
-    }
-    .editable {
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 3px;
-      transition: background-color 0.2s;
-    }
-    .editable:hover {
-      background-color: #e9ecef;
-    }
-    .editable-input {
-      width: 100%;
-      padding: 4px;
-      border: 1px solid #ced4da;
-      border-radius: 3px;
-    }
-    .status-select {
-      min-width: 180px;
-    }
-    .auth-modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-    }
-    .auth-content {
-      background-color: white;
-      margin: 15% auto;
-      padding: 20px;
-      border-radius: 5px;
-      width: 300px;
-    }
-    .add-row-input {
-      margin-bottom: 5px;
-    }
-    .badge {
-      cursor: pointer;
-    }
-    .progress-container {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-    }
-    .progress-content {
-      background-color: white;
-      padding: 20px;
-      border-radius: 5px;
-      width: 300px;
-      text-align: center;
-    }
-  </style>
+    <title>WB Warehouse Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #000076 0%, #000000 50%, #42154c 100%);
+            color: white;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .login-container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            max-width: 400px;
+            width: 90%;
+        }
+        .login-container h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+        }
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: #0066ff;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-container button:hover {
+            background: #0055dd;
+        }
+        .cards-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 90%;
+            max-width: 1200px;
+            margin: 10px 0;
+        }
+        .card {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            width: 250px;
+            margin: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+        .value-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .label {
+            font-size: 20px;
+            font-weight: 400;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .value {
+            font-size: 60px;
+            font-weight: 700;
+            margin: 0 10px;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+        }
+        .trend {
+            font-size: 60px;
+            animation: pulse 1.5s infinite;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        .trend.up {
+            color: #00ff88;
+        }
+        .trend.down {
+            color: #ff4d4d;
+        }
+        .last-update {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-top: 20px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            animation: float linear infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.8);
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        .error-message {
+            color: #ff4d4d;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-
-<!-- Прогресс бар -->
-<div class="progress-container" id="progressContainer">
-  <div class="progress-content">
-    <div class="spinner-border text-primary mb-3" role="status">
-      <span class="visually-hidden">Loading...</span>
+    <div id="login-screen" class="login-container">
+        <h2>Авторизация WB Monitor</h2>
+        <input type="password" id="token-input" placeholder="Введите токен доступа">
+        <input type="number" id="wh-id-input" placeholder="ID склада (по умолчанию 13)" value="13">
+        <button id="login-btn">Войти</button>
     </div>
-    <p id="progressText">Отправка данных...</p>
-  </div>
-</div>
 
-<!-- Модальное окно авторизации -->
-<div id="authModal" class="auth-modal">
-  <div class="auth-content">
-    <h3 class="text-center mb-4">Авторизация</h3>
-    <div class="mb-3">
-      <label for="userFio" class="form-label">ФИО:</label>
-      <input type="text" class="form-control" id="userFio" placeholder="Введите ваше ФИО">
-    </div>
-    <div class="mb-3">
-      <label for="userBlock" class="form-label">Блок:</label>
-      <input type="text" class="form-control" id="userBlock" placeholder="Введите номер блока">
-    </div>
-    <button class="btn btn-primary w-100" onclick="login()">Войти</button>
-  </div>
-</div>
-
-<div class="container" id="mainContent" style="display:none;">
-  <div class="card">
-    <div class="card-body">
-      <h3 class="mb-4 text-center">Проверка Excel-файла</h3>
-      <div class="d-flex justify-content-between mb-3">
-        <div>
-          <span id="userInfo" class="fw-bold"></span>
+    <div id="dashboard" class="hidden">
+        <div class="cards-row">
+            <div class="card">
+                <div class="label">ОТСТАВАНИЕ СОРТИРОВКИ</div>
+                <div class="value-container">
+                    <div class="value" id="last-qty-shk">0</div>
+                    <div class="trend down" id="shk-trend">↓</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="label">ОТСТАВАНИЕ ПРЕДСОРТА</div>
+                <div class="value-container">
+                    <div class="value" id="qty-for-sort">0</div>
+                    <div class="trend down" id="sort-trend">↓</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="label">ОТСТАВАНИЕ СБОРКИ</div>
+                <div class="value-container">
+                    <div class="value" id="qty-cur">0</div>
+                    <div class="trend down" id="asm-trend">↓</div>
+                </div>
+            </div>
         </div>
-        <button class="btn btn-sm btn-outline-secondary" onclick="logout()">Выйти</button>
-      </div>
-
-      <!-- Форма загрузки файла -->
-      <div class="mb-3">
-        <input type="file" class="form-control" id="fileInput" accept=".xlsx">
-      </div>
-
-      <!-- Поиск -->
-      <div class="input-group mb-3">
-        <input type="text" id="searchInput" class="form-control" placeholder="Поиск по place_cod, place_name, Паллет, Баркод">
-        <button class="btn btn-primary" onclick="search()">Поиск</button>
-        <button class="btn btn-success" onclick="saveSelected()">Сохранить</button>
-        <button class="btn btn-danger" onclick="clearAllData()">Очистить все</button>
-      </div>
-
-      <!-- Форма добавления новой записи -->
-      <div class="mb-4 p-3 border rounded">
-        <h5>Добавить новую запись:</h5>
-        <div class="row g-2">
-          <div class="col-md-2">
-            <input type="text" id="addPlaceCod" class="form-control add-row-input" placeholder="place_cod">
-          </div>
-          <div class="col-md-2">
-            <input type="text" id="addPlaceName" class="form-control add-row-input" placeholder="place_name">
-          </div>
-          <div class="col-md-2">
-            <input type="text" id="addPallet" class="form-control add-row-input" placeholder="Паллет">
-          </div>
-          <div class="col-md-2">
-            <input type="text" id="addBarcode" class="form-control add-row-input" placeholder="Баркод">
-          </div>
-          <div class="col-md-2">
-            <select id="addStatus" class="form-select add-row-input">
-              <option value="" selected disabled>Статус</option>
-              <option value="На МХ">На МХ</option>
-              <option value="Совпадает">Совпадает</option>
-              <option value="Буфер">Буфер</option>
-              <option value="Списано">Списано</option>
-              <option value="Не на своём МХ">Не на своём МХ</option>
-              <option value="Хлам">Хлам</option>
-              <option value="ШК">ШК</option>
-              <option value="Нет на МХ">Нет на МХ</option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-outline-primary w-100" onclick="addRow()">Добавить запись</button>
-          </div>
+        <div class="cards-row">
+            <div class="card">
+                <div class="label">ОТСОРТИРОВАНО</div>
+                <div class="value-container">
+                    <div class="value" id="qty-man-sort">0</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="label">ПРЕДСОРТИРОВАНО</div>
+                <div class="value-container">
+                    <div class="value" id="qty-man-sort-prev">0</div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="label">СОБРАНО</div>
+                <div class="value-container">
+                    <div class="value" id="qty-asm">0</div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- Выпадающий список статусов -->
-      <div class="mb-3">
-        <select id="statusSelect" class="form-select status-select" onchange="applyStatusToSelected()">
-          <option value="" selected disabled>Выберите актуальный статус</option>
-          <option value="На МХ">На МХ</option>
-          <option value="Совпадает">Совпадает</option>
-          <option value="Буфер">Буфер</option>
-          <option value="Списано">Списано</option>
-          <option value="Не на своём МХ">Не на своём МХ</option>
-          <option value="Хлам">Хлам</option>
-          <option value="ШК">ШК</option>
-          <option value="Нет на МХ">Нет на МХ</option>
-        </select>
-      </div>
-
-      <!-- Таблица -->
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle" id="dataTable">
-          <thead class="table-light">
-            <tr>
-              <th width="40">✔</th>
-              <th>place_cod</th>
-              <th>place_name</th>
-              <th>Паллет</th>
-              <th>Баркод</th>
-              <th>Статус</th>
-              <th>Актуальный статус</th>
-              <th>ФИО</th>
-              <th>Блок</th>
-              <th>Дата</th>
-            </tr>
-          </thead>
-          <tbody id="results"></tbody>
-        </table>
-      </div>
+        <div class="last-update" id="current-time">Последнее обновление: не обновлялось</div>
+        <div class="error-message" id="error-message"></div>
     </div>
-  </div>
-</div>
 
-<script>
-  let allRows = [];
-  let displayedRows = [];
-  let hasUnsavedChanges = false;
-  let currentUser = null;
+    <script>
+        // Конфигурация API
+        const API1_URL = "https://reports.wbwh.tech/srv/reports_assembly_api_proxy_adapter/api/v2/predsort_not_sorted/graph";
+        const API2_URL = "https://reports.wbwh.tech/srv/reports_assembly_api_proxy_adapter/api/v2/assembly_not_sorted/qtys_for_sort";
+        const API3_URL = "https://reports.wbwh.tech/srv/reports_assembly_api_proxy_adapter/api/v3/assembly_delay/by_wh_id";
+        const API4_URL = "https://reports.wbwh.tech/srv/reports_assembly_api_proxy_adapter/api/assembly_work_plan";
+        const UPDATE_INTERVAL = 300000; // 5 минут в миллисекундах
+        const MAX_RETRIES = 3;
+        const RETRY_DELAY = 10000; // 10 секунд
 
-  const COLUMNS = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус'];
-  const STORAGE_KEY = 'excelCheckerData';
-  const USER_STORAGE_KEY = 'excelCheckerUser';
-  const LOGGING_ENDPOINT = 'https://band.wb.ru/hooks/3iojdc9u6inxuq6ukn4kikynxw';
+        // Глобальные переменные
+        let currentToken = "";
+        let currentWhId = 13;
+        let updateIntervalId = null;
 
-  // Инициализация при загрузке страницы
-  document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
-    loadFromLocalStorage();
-    setupBeforeUnloadWarning();
-    
-    document.getElementById('searchInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        search();
-        this.value = '';
-      }
-    });
-  });
+        // Элементы DOM
+        const loginScreen = document.getElementById('login-screen');
+        const dashboard = document.getElementById('dashboard');
+        const tokenInput = document.getElementById('token-input');
+        const whIdInput = document.getElementById('wh-id-input');
+        const loginBtn = document.getElementById('login-btn');
 
-  // Показать прогресс бар
-  function showProgress(message) {
-    document.getElementById('progressText').textContent = message;
-    document.getElementById('progressContainer').style.display = 'flex';
-  }
-
-  // Скрыть прогресс бар
-  function hideProgress() {
-    document.getElementById('progressContainer').style.display = 'none';
-  }
-
-  // Проверка авторизации
-  function checkAuth() {
-    const savedUser = localStorage.getItem(USER_STORAGE_KEY);
-    if (savedUser) {
-      try {
-        currentUser = JSON.parse(savedUser);
-        showMainContent();
-      } catch (e) {
-        showAuthModal();
-      }
-    } else {
-      showAuthModal();
-    }
-  }
-
-  // Показать модальное окно авторизации
-  function showAuthModal() {
-    document.getElementById('authModal').style.display = 'block';
-    document.getElementById('userFio').focus();
-  }
-
-  // Скрыть модальное окно авторизации
-  function hideAuthModal() {
-    document.getElementById('authModal').style.display = 'none';
-  }
-
-  // Показать основной контент
-  function showMainContent() {
-    document.getElementById('mainContent').style.display = 'flex';
-    document.getElementById('userInfo').textContent = `${currentUser.fio} (Блок ${currentUser.block})`;
-    document.getElementById('searchInput').focus();
-  }
-
-  // Вход в систему
-  function login() {
-    const fio = document.getElementById('userFio').value.trim();
-    const block = document.getElementById('userBlock').value.trim();
-    
-    if (!fio || !block) {
-      alert('Пожалуйста, заполните все поля');
-      return;
-    }
-    
-    currentUser = { fio, block };
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
-    hideAuthModal();
-    showMainContent();
-  }
-
-  // Выход из системы
-  function logout() {
-    if (confirm('Вы уверены, что хотите выйти?')) {
-      localStorage.removeItem(USER_STORAGE_KEY);
-      currentUser = null;
-      document.getElementById('mainContent').style.display = 'none';
-      showAuthModal();
-    }
-  }
-
-  // Загрузка данных из localStorage
-  function loadFromLocalStorage() {
-    const savedData = localStorage.getItem(STORAGE_KEY);
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        if (Array.isArray(parsedData)) {
-          allRows = parsedData;
+        // Функция для отображения ошибки
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
         }
-      } catch (e) {
-        console.error('Ошибка при загрузке данных:', e);
-      }
-    }
-  }
 
-  // Сохранение данных в localStorage
-  function saveToLocalStorage() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(allRows));
-      hasUnsavedChanges = false;
-    } catch (e) {
-      console.error('Ошибка при сохранении данных:', e);
-    }
-  }
+        // Функция для очистки ошибки
+        function clearError() {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = "";
+        }
 
-  // Предупреждение при закрытии страницы
-  function setupBeforeUnloadWarning() {
-    window.addEventListener('beforeunload', (e) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
-        return e.returnValue;
-      }
-    });
-  }
+        // Функция для форматирования даты
+        function formatDate(date) {
+            return date.toISOString().slice(0, 10);
+        }
 
-  // Загрузка файла Excel
-  document.getElementById('fileInput').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      try {
-        const data = new Uint8Array(event.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        const header = rows[0];
-        const indices = COLUMNS.map(col => header.indexOf(col));
-        
-        const newRows = rows.slice(1).map((row, index) => ({
-          place_cod: row[indices[0]] || '',
-          place_name: row[indices[1]] || '',
-          pallet: row[indices[2]] || '',
-          barcode: row[indices[3]] || '',
-          status: row[indices[4]] || '',
-          actual_status: '',
-          fio: currentUser.fio,
-          block: currentUser.block,
-          date: new Date().toLocaleString(),
-          id: allRows.length + index,
-          selected: false
-        }));
-        
-        allRows = [...allRows, ...newRows];
-        hasUnsavedChanges = true;
-        saveToLocalStorage();
-        search();
-      } catch (error) {
-        console.error('Ошибка при обработке файла:', error);
-        alert('Ошибка при чтении файла. Проверьте формат.');
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  });
+        // Функция для форматирования времени
+        function formatTime(date) {
+            return date.toLocaleTimeString('ru-RU');
+        }
 
-  // Добавление строки
-  function addRow() {
-    const placeCod = document.getElementById('addPlaceCod').value.trim();
-    const placeName = document.getElementById('addPlaceName').value.trim();
-    const pallet = document.getElementById('addPallet').value.trim();
-    const barcode = document.getElementById('addBarcode').value.trim();
-    const status = document.getElementById('addStatus').value;
-    
-    if (!placeCod || !placeName || !pallet || !barcode || !status) {
-      alert('Пожалуйста, заполните все поля');
-      return;
-    }
-    
-    const newRow = {
-      place_cod: placeCod,
-      place_name: placeName,
-      pallet: pallet,
-      barcode: barcode,
-      status: status,
-      actual_status: '',
-      fio: currentUser.fio,
-      block: currentUser.block,
-      date: new Date().toLocaleString(),
-      id: allRows.length,
-      selected: false
-    };
-    
-    allRows.push(newRow);
-    
-    // Очищаем поля ввода
-    document.getElementById('addPlaceCod').value = '';
-    document.getElementById('addPlaceName').value = '';
-    document.getElementById('addPallet').value = '';
-    document.getElementById('addBarcode').value = '';
-    document.getElementById('addStatus').value = '';
-    
-    hasUnsavedChanges = true;
-    saveToLocalStorage();
-    search();
-    document.getElementById('addPlaceCod').focus();
-  }
+        // Функция для расчета тренда
+        function calculateTrend(current, previous) {
+            if (previous === 0) {
+                return current > 0 ? "up" : "down";
+            }
+            return current > previous ? "up" : "down";
+        }
 
-  // Поиск по цифрам в place_cod, place_name, Паллет, Баркод
-  function search() {
-    const input = document.getElementById('searchInput').value.trim();
-    const digitsOnly = input.replace(/\D/g, '');
-    
-    if (!digitsOnly) {
-      displayedRows = [];
-      renderTable();
-      document.getElementById('searchInput').value = '';
-      return;
-    }
-    
-    displayedRows = allRows.filter(row => {
-      return (
-        (row.place_cod && row.place_cod.toString().includes(digitsOnly)) ||
-        (row.place_name && row.place_name.toString().includes(digitsOnly)) ||
-        (row.pallet && row.pallet.toString().includes(digitsOnly)) ||
-        (row.barcode && row.barcode.toString().includes(digitsOnly))
-      );
-    }).slice(0, 100);
-    
-    renderTable();
-    document.getElementById('searchInput').value = '';
-  }
+        // Функция для выполнения запроса с повторными попытками
+        async function fetchWithRetry(url, payload, retries = MAX_RETRIES) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${currentToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
 
-  // Отображение таблицы с возможностью редактирования
-  function renderTable() {
-    const body = document.getElementById('results');
-    body.innerHTML = '';
-    
-    if (displayedRows.length === 0) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="10" class="text-center text-muted">Нет данных для отображения</td>`;
-      body.appendChild(tr);
-      return;
-    }
-    
-    displayedRows.forEach((row, i) => {
-      const tr = document.createElement('tr');
-      const checkbox = `<td><input type="checkbox" ${row.selected ? 'checked' : ''} onchange="toggleSelect(${i})"></td>`;
-      
-      const createEditableCell = (value, field, rowId) => {
-        return `<div class="editable" onclick="startEdit(this, '${field}', ${rowId})">${value || '—'}</div>`;
-      };
-      
-      const createEditableStatus = (value, field, rowId, isActual = false) => {
-        if (!value) value = '—';
-        const colorClass = statusColor(value);
-        return `<span class="badge text-bg-${colorClass}" onclick="editStatus(this, '${field}', ${rowId}, ${isActual})">${value}</span>`;
-      };
-      
-      const cells = [
-        `<td>${createEditableCell(row.place_cod, 'place_cod', row.id)}</td>`,
-        `<td>${createEditableCell(row.place_name, 'place_name', row.id)}</td>`,
-        `<td>${createEditableCell(row.pallet, 'pallet', row.id)}</td>`,
-        `<td>${createEditableCell(row.barcode, 'barcode', row.id)}</td>`,
-        `<td>${createEditableStatus(row.status, 'status', row.id)}</td>`,
-        `<td>${createEditableStatus(row.actual_status, 'actual_status', row.id, true)}</td>`,
-        `<td>${row.fio}</td>`,
-        `<td>${row.block}</td>`,
-        `<td>${row.date}</td>`
-      ];
-      
-      tr.innerHTML = checkbox + cells.join('');
-      body.appendChild(tr);
-    });
-  }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
 
-  // Начало редактирования ячейки
-  function startEdit(element, field, rowId) {
-    const currentValue = element.textContent === '—' ? '' : element.textContent;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'editable-input';
-    input.value = currentValue;
-    
-    element.innerHTML = '';
-    element.appendChild(input);
-    input.focus();
-    
-    const saveEdit = () => {
-      const newValue = input.value.trim();
-      updateRowData(rowId, field, newValue);
-      element.innerHTML = newValue || '—';
-    };
-    
-    input.addEventListener('blur', saveEdit);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        saveEdit();
-      }
-    });
-  }
+                    return await response.json();
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                }
+            }
+        }
 
-  // Редактирование статуса
-  function editStatus(element, field, rowId, isActual = false) {
-    const statuses = [
-      'На МХ','Совпадает', 'Буфер', 'Списано', 
-      'Не на своём МХ', 'Хлам', 'ШК','Нет на МХ'
-    ];
-    
-    const currentValue = element.textContent === '—' ? '' : element.textContent;
-    const select = document.createElement('select');
-    select.className = 'form-select form-select-sm';
-    
-    const emptyOption = document.createElement('option');
-    emptyOption.value = '';
-    emptyOption.textContent = '—';
-    select.appendChild(emptyOption);
-    
-    statuses.forEach(status => {
-      const option = document.createElement('option');
-      option.value = status;
-      option.textContent = status;
-      if (status === currentValue) option.selected = true;
-      select.appendChild(option);
-    });
-    
-    element.innerHTML = '';
-    element.appendChild(select);
-    select.focus();
-    
-    const saveEdit = () => {
-      const newValue = select.value;
-      updateRowData(rowId, field, newValue);
-      
-      const colorClass = statusColor(newValue);
-      element.className = `badge text-bg-${colorClass}`;
-      element.textContent = newValue || '—';
-    };
-    
-    select.addEventListener('change', saveEdit);
-    select.addEventListener('blur', saveEdit);
-  }
+        // Функция для обновления данных
+        async function updateData() {
+            try {
+                clearError();
+                const today = formatDate(new Date());
+                const currentTime = new Date();
 
-  // Обновление данных строки
-  function updateRowData(rowId, field, newValue) {
-    const rowIndex = allRows.findIndex(r => r.id === rowId);
-    if (rowIndex !== -1) {
-      const oldValue = allRows[rowIndex][field];
-      allRows[rowIndex][field] = newValue;
-      allRows[rowIndex].fio = currentUser.fio;
-      allRows[rowIndex].block = currentUser.block;
-      allRows[rowIndex].date = new Date().toLocaleString();
-      
-      const displayedIndex = displayedRows.findIndex(r => r.id === rowId);
-      if (displayedIndex !== -1) {
-        displayedRows[displayedIndex][field] = newValue;
-        displayedRows[displayedIndex].fio = currentUser.fio;
-        displayedRows[displayedIndex].block = currentUser.block;
-        displayedRows[displayedIndex].date = new Date().toLocaleString();
-      }
-      
-      hasUnsavedChanges = true;
-      saveToLocalStorage();
-    }
-  }
+                console.log(`[${formatTime(currentTime)}] Обновление данных за ${today}`);
 
-  // Цвет статуса
-  function statusColor(status) {
-    switch(status) {
-      case 'На МХ': return 'success';
-      case 'Совпадает': return 'success';
-      case 'Буфер': return 'primary';
-      case 'Списано': return 'danger';
-      case 'Не на своём МХ': return 'warning';
-      case 'Хлам': return 'secondary';
-      case 'ШК': return 'info';
-      case 'Нет на МХ': return 'info'; 
-      default: return 'light';
-    }
-  }
+                // 1. Данные SHK Quantity
+                let lastShk = 0, prevShk = 0;
+                try {
+                    const api1Data = await fetchWithRetry(API1_URL, { wh_id: [currentWhId] });
+                    if (api1Data && api1Data.data) {
+                        const shkData = api1Data.data[0].qty_shk || [];
+                        lastShk = shkData.length > 0 ? shkData[shkData.length - 1] : 0;
+                        prevShk = shkData.length > 1 ? shkData[shkData.length - 2] : lastShk;
+                    }
+                } catch (error) {
+                    console.error('Ошибка при получении данных SHK:', error);
+                    showError('Ошибка получения данных SHK');
+                }
 
-  // Выбор строки
-  function toggleSelect(index) {
-    displayedRows[index].selected = !displayedRows[index].selected;
-    const allRowIndex = allRows.findIndex(r => r.id === displayedRows[index].id);
-    if (allRowIndex !== -1) {
-      allRows[allRowIndex].selected = displayedRows[index].selected;
-      hasUnsavedChanges = true;
-      saveToLocalStorage();
-    }
-  }
+                const shkTrend = calculateTrend(lastShk, prevShk);
+                document.getElementById('last-qty-shk').textContent = lastShk;
+                document.getElementById('shk-trend').className = `trend ${shkTrend}`;
+                document.getElementById('shk-trend').textContent = shkTrend === 'up' ? '↑' : '↓';
 
-  // Применение статуса к выбранным строкам
-  function applyStatusToSelected() {
-    const select = document.getElementById('statusSelect');
-    const status = select.value;
-    if (!status) return;
-    
-    const selectedRows = displayedRows.filter(row => row.selected);
-    if (selectedRows.length === 0) {
-      alert('Нет выбранных строк');
-      return;
-    }
-    
-    selectedRows.forEach((row, index) => {
-      row.actual_status = status;
-      
-      const allRowIndex = allRows.findIndex(r => r.id === row.id);
-      if (allRowIndex !== -1) {
-        allRows[allRowIndex].actual_status = status;
-        allRows[allRowIndex].fio = currentUser.fio;
-        allRows[allRowIndex].block = currentUser.block;
-        allRows[allRowIndex].date = new Date().toLocaleString();
-      }
-    });
-    
-    select.value = '';
-    hasUnsavedChanges = true;
-    saveToLocalStorage();
-    renderTable();
-    document.getElementById('searchInput').focus();
-  }
+                // 2. Данные qty_for_sort
+                let lastSort = 0, prevSort = 0;
+                try {
+                    const api2Data = await fetchWithRetry(API2_URL, { wh_id: [currentWhId] });
+                    if (api2Data && api2Data.data) {
+                        const todaySortData = api2Data.data.filter(item => 
+                            item && item.dt_h && String(item.dt_h).startsWith(today)
+                        );
+                        
+                        if (todaySortData.length > 0) {
+                            const sortedData = todaySortData.sort((a, b) => a.dt_h.localeCompare(b.dt_h));
+                            lastSort = sortedData[sortedData.length - 1].qty_for_sort;
+                            prevSort = sortedData.length > 1 ? sortedData[sortedData.length - 2].qty_for_sort : lastSort;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при получении данных предсорта:', error);
+                    showError('Ошибка получения данных предсорта');
+                }
 
-  // Сохранение выбранных строк
- async function saveSelected() {
-  const selected = allRows.filter(row => row.selected);
-  if (selected.length === 0) {
-    alert("Нет выбранных строк.");
-    return;
-  }
+                const sortTrend = calculateTrend(lastSort, prevSort);
+                document.getElementById('qty-for-sort').textContent = lastSort;
+                document.getElementById('sort-trend').className = `trend ${sortTrend}`;
+                document.getElementById('sort-trend').textContent = sortTrend === 'up' ? '↑' : '↓';
 
-  showProgress("Подготовка данных...");
-  
-  try {
-    // Создаем лог данных
-const logData = { /* ... */ };
+                // 3. Данные отставания сборки
+                let qtyCur = 0, prevQtyCur = 0;
+                try {
+                    const api3Data = await fetchWithRetry(API3_URL, { 
+                        wh_id: [currentWhId], 
+                        param: [-1], 
+                        is_stock: [-1] 
+                    });
 
-    showProgress("Отправка данных...");
-    
-    // Отправляем данные как JSON
-    const response = await fetch(LOGGING_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(logData)
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Ошибка HTTP: ${response.status}`);
-    }
-    
-    // Скачиваем файл локально
-    downloadCSV(selected);
-    
-    alert("Данные успешно сохранены и отправлены!");
-  } catch (error) {
-    console.error('Ошибка:', error);
-    alert('Ошибка при отправке данных. Файл сохранён локально.');
-    downloadCSV(selected);
-  } finally {
-    hideProgress();
-  }
-}
+                    if (api3Data && api3Data.data && api3Data.data.length > 0) {
+                        const currentData = api3Data.data[0];
+                        const qtys = currentData.qtys || [];
+                        const dts = currentData.dts || [];
 
-function generateCSVBlob(rows) {
-  const headers = ['place_cod', 'place_name', 'Паллет', 'Баркод', 'Статус', 'Актуальный статус', 'ФИО', 'Блок', 'Дата'];
-  const csv = [headers.join(',')].concat(
-    rows.map(row => [
-      row.place_cod,
-      row.place_name,
-      row.pallet,
-      row.barcode,
-      row.status,
-      row.actual_status,
-      row.fio,
-      row.block,
-      row.date
-    ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
-  ).join('\n');
+                        // Фильтруем только сегодняшние данные
+                        const todayQtys = [];
+                        for (let i = 0; i < Math.min(qtys.length, dts.length); i++) {
+                            if (String(dts[i]).startsWith(today)) {
+                                todayQtys.push(qtys[i]);
+                            }
+                        }
 
-  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-  const fileName = `selected_${new Date().toISOString().slice(0, 10)}.csv`;
-  return { blob, fileName };
-}
-      
-      // Создаем FormData для отправки
-const formData = new FormData();
-formData.append('log', JSON.stringify(logData));
-formData.append('file', blob, fileName);
+                        if (todayQtys.length > 0) {
+                            qtyCur = todayQtys[todayQtys.length - 1];
+                            prevQtyCur = todayQtys.length > 1 ? todayQtys[todayQtys.length - 2] : qtyCur;
+                        } else {
+                            qtyCur = currentData.qty_cur || 0;
+                            prevQtyCur = qtys.length > 1 ? qtys[qtys.length - 2] : qtyCur;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при получении данных сборки:', error);
+                    showError('Ошибка получения данных сборки');
+                }
 
-showProgress("Отправка данных...");
+                const asmTrend = calculateTrend(qtyCur, prevQtyCur);
+                document.getElementById('qty-cur').textContent = qtyCur;
+                document.getElementById('asm-trend').className = `trend ${asmTrend}`;
+                document.getElementById('asm-trend').textContent = asmTrend === 'up' ? '↑' : '↓';
 
-const response = await fetch(LOGGING_ENDPOINT, {
-  method: 'POST',
-  body: formData
-});
+                // 4. Данные выполненных работ
+                let qtyManSort = 0, qtyManSortPrev = 0, qtyAsm = 0;
+                try {
+                    const api4Data = await fetchWithRetry(API4_URL, { 
+                        date_from: today, 
+                        date_to: today, 
+                        wh_id: [currentWhId] 
+                    });
 
-if (!response.ok) {
-  throw new Error(`Ошибка HTTP: ${response.status}`);
-}
+                    if (api4Data && api4Data.data) {
+                        const todayWorkData = api4Data.data.filter(item => 
+                            item && item.dt && String(item.dt).startsWith(today)
+                        );
 
-alert("Данные успешно сохранены и отправлены!");
-      // Скачиваем файл локально
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Сбрасываем выбранные строки
-      allRows.forEach(row => row.selected = false);
-      displayedRows.forEach(row => row.selected = false);
-      hasUnsavedChanges = true;
-      saveToLocalStorage();
-      renderTable();
-      document.getElementById('searchInput').focus();
-      
-      alert("Данные успешно сохранены и отправлены!");
-    } catch (error) {
-      console.error('Ошибка при сохранении данных:', error);
-      alert('Произошла ошибка при отправке данных. Пожалуйста, попробуйте еще раз.');
-    } finally {
-      hideProgress();
-    }
-  }
+                        if (todayWorkData.length > 0) {
+                            qtyManSort = todayWorkData.reduce((sum, item) => sum + (item.qty_man_sort || 0), 0);
+                            qtyManSortPrev = todayWorkData.reduce((sum, item) => sum + (item.qty_predsort || 0), 0);
+                            qtyAsm = todayWorkData.reduce((sum, item) => sum + (item.qty_asm || 0), 0);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при получении данных работ:', error);
+                    showError('Ошибка получения данных работ');
+                }
 
-  // Очистка всех данных
-  function clearAllData() {
-    if (confirm('Вы уверены, что хотите удалить все данные?')) {
-      const rowsCount = allRows.length;
-      allRows = [];
-      displayedRows = [];
-      localStorage.removeItem(STORAGE_KEY);
-      renderTable();
-      document.getElementById('searchInput').focus();
-    }
-  }
-</script>
+                document.getElementById('qty-man-sort').textContent = qtyManSort;
+                document.getElementById('qty-man-sort-prev').textContent = qtyManSortPrev;
+                document.getElementById('qty-asm').textContent = qtyAsm;
+
+                // Обновляем время последнего обновления
+                document.getElementById('current-time').textContent = 
+                    `Последнее обновление: ${formatTime(new Date())}`;
+
+            } catch (error) {
+                console.error('Критическая ошибка при обновлении данных:', error);
+                showError(`Критическая ошибка: ${error.message}`);
+            }
+        }
+
+        // Функция для создания пузырьков
+        function createBubbles() {
+            const bubbleTexts = ['WB', 'RWB'];
+            const colors = ['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.1)'];
+            
+            setInterval(() => {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = Math.random() * 100 + 50;
+                const posX = Math.random() * window.innerWidth;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 5;
+                const text = bubbleTexts[Math.floor(Math.random() * bubbleTexts.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${posX}px`;
+                bubble.style.bottom = `-${size}px`;
+                bubble.style.animationDuration = `${duration}s`;
+                bubble.style.animationDelay = `${delay}s`;
+                bubble.style.background = color;
+                bubble.textContent = text;
+                
+                document.body.appendChild(bubble);
+                
+                setTimeout(() => {
+                    bubble.remove();
+                }, duration * 1000);
+            }, 500);
+        }
+
+        // Обработчик входа
+        loginBtn.addEventListener('click', async () => {
+            const token = tokenInput.value.trim();
+            const whId = whIdInput.value.trim() || "13";
+            
+            if (!token) {
+                alert('Пожалуйста, введите токен доступа');
+                return;
+            }
+            
+            if (!/^\d+$/.test(whId)) {
+                alert('ID склада должен быть числом');
+                return;
+            }
+            
+            currentToken = token;
+            currentWhId = parseInt(whId, 10);
+            
+            // Показать загрузку
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Загрузка...';
+            
+            try {
+                // Проверить токен, запросив один из API
+                await fetchWithRetry(API1_URL, { wh_id: [currentWhId] });
+                
+                // Если успешно, скрыть экран входа и показать дашборд
+                loginScreen.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+                
+                // Запустить обновление данных
+                updateData();
+                updateIntervalId = setInterval(updateData, UPDATE_INTERVAL);
+                
+                // Создать пузырьки
+                createBubbles();
+                
+            } catch (error) {
+                console.error('Ошибка авторизации:', error);
+                alert('Неверный токен или проблемы с подключением. Проверьте токен и попробуйте снова.');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Войти';
+            }
+        });
+
+        // Также разрешаем вход по нажатию Enter
+        tokenInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+
+        whIdInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginBtn.click();
+            }
+        });
+    </script>
 </body>
 </html>
