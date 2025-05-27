@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WB Warehouse Monitor</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -19,6 +21,7 @@
             overflow: hidden;
             position: relative;
         }
+        
         .login-container {
             background: rgba(0, 0, 0, 0.6);
             padding: 30px;
@@ -28,10 +31,12 @@
             max-width: 400px;
             width: 90%;
         }
+        
         .login-container h2 {
             margin-top: 0;
             margin-bottom: 20px;
         }
+        
         .login-container input {
             width: 100%;
             padding: 12px;
@@ -42,6 +47,7 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 16px;
         }
+        
         .login-container button {
             width: 100%;
             padding: 12px;
@@ -55,9 +61,16 @@
             cursor: pointer;
             transition: background 0.3s;
         }
+        
         .login-container button:hover {
             background: #0055dd;
         }
+        
+        .login-container button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
         .cards-row {
             display: flex;
             justify-content: center;
@@ -66,6 +79,7 @@
             max-width: 1200px;
             margin: 10px 0;
         }
+        
         .card {
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
@@ -78,17 +92,20 @@
             position: relative;
             z-index: 10;
         }
+        
         .value-container {
             display: flex;
             justify-content: center;
             align-items: center;
             margin: 20px 0;
         }
+        
         .label {
             font-size: 20px;
             font-weight: 400;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
+        
         .value {
             font-size: 60px;
             font-weight: 700;
@@ -96,28 +113,34 @@
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             color: #ffffff;
         }
+        
         .trend {
             font-size: 60px;
             animation: pulse 1.5s infinite;
             text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
+        
         .trend.up {
             color: #00ff88;
         }
+        
         .trend.down {
             color: #ff4d4d;
         }
+        
         .last-update {
             font-size: 16px;
             opacity: 0.9;
             margin-top: 20px;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
+        
         @keyframes pulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+        
         .bubble {
             position: absolute;
             border-radius: 50%;
@@ -131,6 +154,7 @@
             z-index: 1;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
+        
         @keyframes float {
             0% {
                 transform: translateY(0) rotate(0deg);
@@ -141,21 +165,57 @@
                 opacity: 0;
             }
         }
+        
         .error-message {
             color: #ff4d4d;
             font-size: 18px;
             margin-top: 20px;
+            max-width: 800px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
         }
+        
         .hidden {
             display: none;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            font-size: 24px;
+        }
+        
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        .status-good {
+            background-color: #00ff88;
+        }
+        
+        .status-bad {
+            background-color: #ff4d4d;
         }
     </style>
 </head>
 <body>
     <div id="login-screen" class="login-container">
         <h2>Авторизация WB Monitor</h2>
-        <input type="password" id="token-input" placeholder="Введите токен доступа">
-        <input type="number" id="wh-id-input" placeholder="ID склада (по умолчанию 13)" value="13">
+        <input type="password" id="token-input" placeholder="Введите токен доступа" autocomplete="off">
+        <input type="number" id="wh-id-input" placeholder="ID склада (по умолчанию 13)" value="13" min="1">
         <button id="login-btn">Войти</button>
     </div>
 
@@ -207,6 +267,10 @@
         <div class="error-message" id="error-message"></div>
     </div>
 
+    <div id="loading-screen" class="loading hidden">
+        <div>Проверка авторизации...</div>
+    </div>
+
     <script>
         // Конфигурация API
         const API1_URL = "https://reports.wbwh.tech/srv/reports_assembly_api_proxy_adapter/api/v2/predsort_not_sorted/graph";
@@ -221,6 +285,7 @@
         let currentToken = "";
         let currentWhId = 13;
         let updateIntervalId = null;
+        let isFirstUpdate = true;
 
         // Элементы DOM
         const loginScreen = document.getElementById('login-screen');
@@ -228,16 +293,16 @@
         const tokenInput = document.getElementById('token-input');
         const whIdInput = document.getElementById('wh-id-input');
         const loginBtn = document.getElementById('login-btn');
+        const loadingScreen = document.getElementById('loading-screen');
+        const errorElement = document.getElementById('error-message');
 
         // Функция для отображения ошибки
         function showError(message) {
-            const errorElement = document.getElementById('error-message');
-            errorElement.textContent = message;
+            errorElement.innerHTML = message;
         }
 
         // Функция для очистки ошибки
         function clearError() {
-            const errorElement = document.getElementById('error-message');
             errorElement.textContent = "";
         }
 
@@ -259,8 +324,20 @@
             return current > previous ? "up" : "down";
         }
 
-        // Функция для выполнения запроса с повторными попытками
+        // Функция для безопасного парсинга JSON
+        async function parseJsonSafely(response) {
+            try {
+                return await response.json();
+            } catch (e) {
+                console.error('Ошибка парсинга JSON:', e);
+                return null;
+            }
+        }
+
+        // Улучшенная функция для выполнения запросов
         async function fetchWithRetry(url, payload, retries = MAX_RETRIES) {
+            let lastError = null;
+            
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(url, {
@@ -272,15 +349,46 @@
                         body: JSON.stringify(payload)
                     });
 
+                    // Проверяем статус ответа
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        const errorData = await parseJsonSafely(response);
+                        const errorMsg = errorData?.message || `HTTP error! status: ${response.status}`;
+                        throw new Error(errorMsg);
                     }
 
-                    return await response.json();
+                    const data = await parseJsonSafely(response);
+                    if (!data) {
+                        throw new Error('Неверный формат ответа от сервера');
+                    }
+
+                    return data;
                 } catch (error) {
-                    if (i === retries - 1) throw error;
-                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                    lastError = error;
+                    console.error(`Попытка ${i + 1} из ${retries} не удалась:`, error.message);
+                    
+                    if (i < retries - 1) {
+                        console.log(`Повторная попытка через ${RETRY_DELAY/1000} сек...`);
+                        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                    }
                 }
+            }
+            
+            throw lastError || new Error('Неизвестная ошибка при выполнении запроса');
+        }
+
+        // Функция для обновления UI элемента
+        function updateUIElement(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
+
+        // Функция для обновления тренда
+        function updateTrendElement(id, current, previous) {
+            const trend = calculateTrend(current, previous);
+            const element = document.getElementById(id);
+            if (element) {
+                element.className = `trend ${trend}`;
+                element.textContent = trend === 'up' ? '↑' : '↓';
             }
         }
 
@@ -290,6 +398,8 @@
                 clearError();
                 const today = formatDate(new Date());
                 const currentTime = new Date();
+                let hasErrors = false;
+                let errorMessages = [];
 
                 console.log(`[${formatTime(currentTime)}] Обновление данных за ${today}`);
 
@@ -297,20 +407,21 @@
                 let lastShk = 0, prevShk = 0;
                 try {
                     const api1Data = await fetchWithRetry(API1_URL, { wh_id: [currentWhId] });
-                    if (api1Data && api1Data.data) {
-                        const shkData = api1Data.data[0].qty_shk || [];
+                    if (api1Data && api1Data.data && api1Data.data[0] && api1Data.data[0].qty_shk) {
+                        const shkData = api1Data.data[0].qty_shk;
                         lastShk = shkData.length > 0 ? shkData[shkData.length - 1] : 0;
                         prevShk = shkData.length > 1 ? shkData[shkData.length - 2] : lastShk;
+                    } else {
+                        throw new Error('Неверная структура данных SHK');
                     }
                 } catch (error) {
-                    console.error('Ошибка при получении данных SHK:', error);
-                    showError('Ошибка получения данных SHK');
+                    console.error('SHK Error:', error);
+                    errorMessages.push(`SHK: ${error.message}`);
+                    hasErrors = true;
                 }
 
-                const shkTrend = calculateTrend(lastShk, prevShk);
-                document.getElementById('last-qty-shk').textContent = lastShk;
-                document.getElementById('shk-trend').className = `trend ${shkTrend}`;
-                document.getElementById('shk-trend').textContent = shkTrend === 'up' ? '↑' : '↓';
+                updateUIElement('last-qty-shk', lastShk);
+                updateTrendElement('shk-trend', lastShk, prevShk);
 
                 // 2. Данные qty_for_sort
                 let lastSort = 0, prevSort = 0;
@@ -319,23 +430,23 @@
                     if (api2Data && api2Data.data) {
                         const todaySortData = api2Data.data.filter(item => 
                             item && item.dt_h && String(item.dt_h).startsWith(today)
-                        );
+                        ).sort((a, b) => a.dt_h.localeCompare(b.dt_h));
                         
                         if (todaySortData.length > 0) {
-                            const sortedData = todaySortData.sort((a, b) => a.dt_h.localeCompare(b.dt_h));
-                            lastSort = sortedData[sortedData.length - 1].qty_for_sort;
-                            prevSort = sortedData.length > 1 ? sortedData[sortedData.length - 2].qty_for_sort : lastSort;
+                            lastSort = todaySortData[todaySortData.length - 1].qty_for_sort || 0;
+                            prevSort = todaySortData.length > 1 ? todaySortData[todaySortData.length - 2].qty_for_sort : lastSort;
                         }
+                    } else {
+                        throw new Error('Неверная структура данных предсорта');
                     }
                 } catch (error) {
-                    console.error('Ошибка при получении данных предсорта:', error);
-                    showError('Ошибка получения данных предсорта');
+                    console.error('Sort Error:', error);
+                    errorMessages.push(`Sort: ${error.message}`);
+                    hasErrors = true;
                 }
 
-                const sortTrend = calculateTrend(lastSort, prevSort);
-                document.getElementById('qty-for-sort').textContent = lastSort;
-                document.getElementById('sort-trend').className = `trend ${sortTrend}`;
-                document.getElementById('sort-trend').textContent = sortTrend === 'up' ? '↑' : '↓';
+                updateUIElement('qty-for-sort', lastSort);
+                updateTrendElement('sort-trend', lastSort, prevSort);
 
                 // 3. Данные отставания сборки
                 let qtyCur = 0, prevQtyCur = 0;
@@ -346,10 +457,9 @@
                         is_stock: [-1] 
                     });
 
-                    if (api3Data && api3Data.data && api3Data.data.length > 0) {
-                        const currentData = api3Data.data[0];
-                        const qtys = currentData.qtys || [];
-                        const dts = currentData.dts || [];
+                    if (api3Data && api3Data.data && api3Data.data[0]) {
+                        const qtys = api3Data.data[0].qtys || [];
+                        const dts = api3Data.data[0].dts || [];
 
                         // Фильтруем только сегодняшние данные
                         const todayQtys = [];
@@ -363,19 +473,20 @@
                             qtyCur = todayQtys[todayQtys.length - 1];
                             prevQtyCur = todayQtys.length > 1 ? todayQtys[todayQtys.length - 2] : qtyCur;
                         } else {
-                            qtyCur = currentData.qty_cur || 0;
+                            qtyCur = api3Data.data[0].qty_cur || 0;
                             prevQtyCur = qtys.length > 1 ? qtys[qtys.length - 2] : qtyCur;
                         }
+                    } else {
+                        throw new Error('Неверная структура данных сборки');
                     }
                 } catch (error) {
-                    console.error('Ошибка при получении данных сборки:', error);
-                    showError('Ошибка получения данных сборки');
+                    console.error('Assembly Error:', error);
+                    errorMessages.push(`Assembly: ${error.message}`);
+                    hasErrors = true;
                 }
 
-                const asmTrend = calculateTrend(qtyCur, prevQtyCur);
-                document.getElementById('qty-cur').textContent = qtyCur;
-                document.getElementById('asm-trend').className = `trend ${asmTrend}`;
-                document.getElementById('asm-trend').textContent = asmTrend === 'up' ? '↑' : '↓';
+                updateUIElement('qty-cur', qtyCur);
+                updateTrendElement('asm-trend', qtyCur, prevQtyCur);
 
                 // 4. Данные выполненных работ
                 let qtyManSort = 0, qtyManSortPrev = 0, qtyAsm = 0;
@@ -390,29 +501,42 @@
                         const todayWorkData = api4Data.data.filter(item => 
                             item && item.dt && String(item.dt).startsWith(today)
                         );
-
-                        if (todayWorkData.length > 0) {
-                            qtyManSort = todayWorkData.reduce((sum, item) => sum + (item.qty_man_sort || 0), 0);
-                            qtyManSortPrev = todayWorkData.reduce((sum, item) => sum + (item.qty_predsort || 0), 0);
-                            qtyAsm = todayWorkData.reduce((sum, item) => sum + (item.qty_asm || 0), 0);
-                        }
+                        
+                        qtyManSort = todayWorkData.reduce((sum, item) => sum + (item.qty_man_sort || 0), 0);
+                        qtyManSortPrev = todayWorkData.reduce((sum, item) => sum + (item.qty_predsort || 0), 0);
+                        qtyAsm = todayWorkData.reduce((sum, item) => sum + (item.qty_asm || 0), 0);
+                    } else {
+                        throw new Error('Неверная структура данных работ');
                     }
                 } catch (error) {
-                    console.error('Ошибка при получении данных работ:', error);
-                    showError('Ошибка получения данных работ');
+                    console.error('Work Data Error:', error);
+                    errorMessages.push(`Work: ${error.message}`);
+                    hasErrors = true;
                 }
 
-                document.getElementById('qty-man-sort').textContent = qtyManSort;
-                document.getElementById('qty-man-sort-prev').textContent = qtyManSortPrev;
-                document.getElementById('qty-asm').textContent = qtyAsm;
+                updateUIElement('qty-man-sort', qtyManSort);
+                updateUIElement('qty-man-sort-prev', qtyManSortPrev);
+                updateUIElement('qty-asm', qtyAsm);
 
                 // Обновляем время последнего обновления
                 document.getElementById('current-time').textContent = 
                     `Последнее обновление: ${formatTime(new Date())}`;
 
+                // Показываем ошибки, если они есть
+                if (hasErrors) {
+                    showError(errorMessages.join('<br>'));
+                }
+
+                // После первого успешного обновления скрываем loading screen
+                if (isFirstUpdate) {
+                    isFirstUpdate = false;
+                    loadingScreen.classList.add('hidden');
+                }
+
             } catch (error) {
-                console.error('Критическая ошибка при обновлении данных:', error);
+                console.error('Critical Update Error:', error);
                 showError(`Критическая ошибка: ${error.message}`);
+                loadingScreen.classList.add('hidden');
             }
         }
 
@@ -459,7 +583,7 @@
             }
             
             if (!/^\d+$/.test(whId)) {
-                alert('ID склада должен быть числом');
+                alert('ID склада должен быть положительным числом');
                 return;
             }
             
@@ -468,7 +592,8 @@
             
             // Показать загрузку
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Загрузка...';
+            loginBtn.textContent = 'Проверка...';
+            loadingScreen.classList.remove('hidden');
             
             try {
                 // Проверить токен, запросив один из API
@@ -487,10 +612,11 @@
                 
             } catch (error) {
                 console.error('Ошибка авторизации:', error);
-                alert('Неверный токен или проблемы с подключением. Проверьте токен и попробуйте снова.');
+                alert(`Ошибка авторизации: ${error.message}\nПроверьте токен и ID склада и попробуйте снова.`);
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Войти';
+                loadingScreen.classList.add('hidden');
             }
         });
 
@@ -505,6 +631,11 @@
             if (e.key === 'Enter') {
                 loginBtn.click();
             }
+        });
+
+        // При загрузке страницы фокусируемся на поле ввода токена
+        window.addEventListener('DOMContentLoaded', () => {
+            tokenInput.focus();
         });
     </script>
 </body>
